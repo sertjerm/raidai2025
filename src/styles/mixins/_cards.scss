@@ -1,0 +1,21 @@
+@use '../variables/colors' as *;
+@use '../variables/spacing' as *;
+
+@mixin card-base {
+  background: $bg-container;
+  border-radius: $radius-lg;
+  box-shadow: 0 4px 16px $shadow-light;
+  border: 1px solid $border-light;
+  transition: all 0.3s ease;
+}
+
+@mixin card-hover {
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px $shadow-base;
+  }
+}
+
+@mixin card-gradient {
+  background: linear-gradient(135deg, $bg-container 0%, $primary-50 100%);
+}

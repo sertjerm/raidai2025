@@ -1,0 +1,34 @@
+@use '../variables/colors' as *;
+@use '../variables/spacing' as *;
+
+// Custom scrollbar
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: $primary-100;
+  border-radius: $radius-md;
+}
+
+::-webkit-scrollbar-thumb {
+  background: $primary-500;
+  border-radius: $radius-md;
+  
+  &:hover {
+    background: $primary-600;
+  }
+}
+
+// Focus styles
+:focus-visible {
+  outline: 2px solid $primary-500;
+  outline-offset: 2px;
+}
+
+// Selection styles
+::selection {
+  background: $primary-300;
+  color: $primary-900;
+}

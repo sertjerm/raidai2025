@@ -1,0 +1,24 @@
+// Modern @use syntax - all @use and @forward must come first
+@use "variables/colors" as *;
+@use "variables/spacing" as *;
+@use "variables/typography" as *;
+@use "variables/breakpoints" as *;
+@use "mixins/buttons";
+@use "mixins/cards";
+@use "mixins/animations";
+@use "base/reset";
+@use "base/global";
+@use "utilities/helpers";
+@use "utilities/overrides";
+@use "components/layout";
+@use "components/login";
+@use "components/dashboard";
+
+// Forward for component access
+@forward "variables/colors";
+@forward "variables/spacing";
+@forward "variables/typography";
+@forward "variables/breakpoints";
+
+// Import external fonts
+@import url("https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap");

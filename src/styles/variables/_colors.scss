@@ -1,0 +1,39 @@
+// Primary Colors - Light Blue Theme
+$primary-50: #f0f8ff !default;
+$primary-100: #e6f3ff !default;
+$primary-200: #cce7ff !default;
+$primary-300: #b3d9ff !default;
+$primary-400: #80bfff !default;
+$primary-500: #4a90e2 !default;
+$primary-600: #3b7bc7 !default;
+$primary-700: #2c5aa0 !default;
+$primary-800: #1e3f73 !default;
+$primary-900: #0f2447 !default;
+
+// Semantic Colors
+$success-color: #10b981 !default;
+$warning-color: #f59e0b !default;
+$error-color: #ef4444 !default;
+$info-color: #3b82f6 !default;
+
+// Background Colors
+$bg-base: $primary-50 !default;
+$bg-container: #ffffff !default;
+$bg-elevated: #ffffff !default;
+$bg-layout: $primary-50 !default;
+
+// Text Colors
+$text-primary: #1a365d !default;
+$text-secondary: #4a6cf7 !default;
+$text-disabled: #9ca3af !default;
+$text-inverse: #ffffff !default;
+
+// Border Colors
+$border-light: $primary-200 !default;
+$border-base: $primary-300 !default;
+$border-dark: $primary-400 !default;
+
+// Shadow Colors
+$shadow-light: rgba(74, 144, 226, 0.1) !default;
+$shadow-base: rgba(74, 144, 226, 0.15) !default;
+$shadow-dark: rgba(74, 144, 226, 0.25) !default;

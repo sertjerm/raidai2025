@@ -1,0 +1,20 @@
+@use '../variables/colors' as *;
+@use '../variables/spacing' as *;
+
+.admin-layout {
+  min-height: 100vh;
+  
+  .header {
+    background: linear-gradient(135deg, $primary-700 0%, $primary-500 100%);
+    box-shadow: 0 2px 8px $shadow-light;
+  }
+  
+  .sidebar {
+    background: $bg-layout;
+  }
+  
+  .content {
+    background: $bg-layout;
+    padding: $content-padding;
+  }
+}
