@@ -82,7 +82,10 @@ function AppLayout({ user, onLogout, children }) {
         { title: <HomeOutlined /> },
         { title: "ข้อมูลหลัก" },
       ],
-      [ROUTES.REPORTS]: [{ title: <HomeOutlined /> }, { title: "รายงาน" }],
+      [ROUTES.DATA_UPDATE]: [
+        { title: <HomeOutlined /> },
+        { title: "ปรับปรุงข้อมูล" },
+      ],
       [ROUTES.SETTINGS]: [{ title: <HomeOutlined /> }, { title: "ตั้งค่า" }],
     };
     return breadcrumbMap[location.pathname] || [{ title: <HomeOutlined /> }];

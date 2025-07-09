@@ -31,6 +31,7 @@ const DataUpdate = ({ user }) => {
   const [paginationSettings, setPaginationSettings] = useState({});
   const [currentUser, setCurrentUser] = useState(null);
   const [sectionExpandedKeys, setSectionExpandedKeys] = useState({});
+  const [departmentExpandedKeys, setDepartmentExpandedKeys] = useState([]);
 
   // Initialize user from props or localStorage
   useEffect(() => {
@@ -168,6 +169,9 @@ const DataUpdate = ({ user }) => {
     // Initialize section expanded keys for first department
     const sortedDepts = Object.keys(departments).sort();
     if (sortedDepts.length > 0) {
+      // Set first department as expanded
+      setDepartmentExpandedKeys([sortedDepts[0]]);
+
       const firstDept = departments[sortedDepts[0]];
       const firstSectionKey = Object.keys(firstDept.sections).sort()[0];
       if (firstSectionKey) {
@@ -181,6 +185,9 @@ const DataUpdate = ({ user }) => {
   // Handle department panel change
   const handleDepartmentChange = (activeKeys) => {
     if (!processedData) return;
+
+    // Update department expanded keys
+    setDepartmentExpandedKeys(activeKeys);
 
     const newSectionKeys = { ...sectionExpandedKeys };
 
@@ -329,7 +336,8 @@ const DataUpdate = ({ user }) => {
       aidAmount: acc.aidAmount + dept.totals.aidAmount,
       total1: acc.total1 + dept.totals.total1,
       total2: acc.total2 + dept.totals.total2,
-      difference: acc.difference + dept.totals.difference,
+      difference:
+        Math.round((acc.difference + dept.totals.difference) * 100) / 100,
     }),
     {
       count: 0,
@@ -445,20 +453,178 @@ const DataUpdate = ({ user }) => {
           .map((dept, deptIndex) => (
             <Panel
               header={
-                <div>
-                  <Text strong>
-                    {dept.dept_code} - {dept.dept_name}
-                  </Text>
-                  <Tag color="blue" style={{ marginLeft: "8px" }}>
-                    {dept.totals.count} คน
-                  </Tag>
-                  <Tag color="green" style={{ marginLeft: "4px" }}>
-                    เก็บได้:{" "}
-                    {dept.totals.total1.toLocaleString("th-TH", {
-                      minimumFractionDigits: 2,
-                    })}{" "}
-                    บาท
-                  </Tag>
+                <div style={{ width: "100%" }}>
+                  {/* แถวหลัก: ชื่อหน่วยงาน + สรุปยอด */}
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      width: "100%",
+                    }}
+                  >
+                    {/* ชื่อหน่วยงาน */}
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        minWidth: "320px",
+                      }}
+                    >
+                      <Text strong>
+                        {dept.dept_code} - {dept.dept_name}
+                      </Text>
+                      <Tag color="blue" style={{ marginLeft: "8px" }}>
+                        {dept.totals.count} คน
+                      </Tag>
+                    </div>
+
+                    {/* สรุปยอดตาม columns ตาราง (เมื่อปิดอยู่) */}
+                    {!departmentExpandedKeys.includes(dept.dept_code) && (
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "16px",
+                          fontSize: "12px",
+                          flex: 1,
+                        }}
+                      >
+                        {/* เว้นช่องว่างสำหรับ เลขสมาชิก + ชื่อ-สกุล */}
+                        <div style={{ minWidth: "320px" }}></div>
+
+                        {/* เงินเดือน */}
+                        <div style={{ minWidth: "120px", textAlign: "right" }}>
+                          <div
+                            style={{
+                              fontSize: "10px",
+                              color: "#999",
+                              marginBottom: "2px",
+                            }}
+                          >
+                            เงินเดือน
+                          </div>
+                          <Text strong>
+                            {dept.totals.salary.toLocaleString("th-TH", {
+                              minimumFractionDigits: 0,
+                            })}
+                          </Text>
+                        </div>
+
+                        {/* เหลือรับ */}
+                        <div style={{ minWidth: "120px", textAlign: "right" }}>
+                          <div
+                            style={{
+                              fontSize: "10px",
+                              color: "#999",
+                              marginBottom: "2px",
+                            }}
+                          >
+                            เหลือรับ
+                          </div>
+                          <Text strong>
+                            {dept.totals.salary.toLocaleString("th-TH", {
+                              minimumFractionDigits: 0,
+                            })}
+                          </Text>
+                        </div>
+
+                        {/* เรียกเก็บ */}
+                        <div style={{ minWidth: "120px", textAlign: "right" }}>
+                          <div
+                            style={{
+                              fontSize: "10px",
+                              color: "#999",
+                              marginBottom: "2px",
+                            }}
+                          >
+                            เรียกเก็บ
+                          </div>
+                          <Text strong style={{ color: "#1890ff" }}>
+                            {dept.totals.money.toLocaleString("th-TH", {
+                              minimumFractionDigits: 2,
+                            })}
+                          </Text>
+                        </div>
+
+                        {/* เงินทำบุญ */}
+                        <div style={{ minWidth: "120px", textAlign: "right" }}>
+                          <div
+                            style={{
+                              fontSize: "10px",
+                              color: "#999",
+                              marginBottom: "2px",
+                            }}
+                          >
+                            เงินทำบุญ
+                          </div>
+                          <Text strong style={{ color: "#fa8c16" }}>
+                            {dept.totals.aidAmount.toLocaleString("th-TH", {
+                              minimumFractionDigits: 2,
+                            })}
+                          </Text>
+                        </div>
+
+                        {/* เก็บได้ */}
+                        <div style={{ minWidth: "120px", textAlign: "right" }}>
+                          <div
+                            style={{
+                              fontSize: "10px",
+                              color: "#999",
+                              marginBottom: "2px",
+                            }}
+                          >
+                            เก็บได้
+                          </div>
+                          <Text strong style={{ color: "#52c41a" }}>
+                            {dept.totals.total1.toLocaleString("th-TH", {
+                              minimumFractionDigits: 2,
+                            })}
+                          </Text>
+                        </div>
+
+                        {/* ผลต่าง */}
+                        <div style={{ minWidth: "120px", textAlign: "right" }}>
+                          <div
+                            style={{
+                              fontSize: "10px",
+                              color: "#999",
+                              marginBottom: "2px",
+                            }}
+                          >
+                            ผลต่าง
+                          </div>
+                          <Text
+                            strong
+                            style={{
+                              color:
+                                dept.totals.difference >= 0
+                                  ? "#52c41a"
+                                  : "#ff4d4f",
+                            }}
+                          >
+                            {dept.totals.difference.toLocaleString("th-TH", {
+                              minimumFractionDigits: 2,
+                            })}
+                          </Text>
+                        </div>
+
+                        {/* หมายเหตุ */}
+                        <div style={{ minWidth: "150px" }}></div>
+                      </div>
+                    )}
+
+                    {/* แสดง tag เก็บได้เมื่อเปิดอยู่ */}
+                    {departmentExpandedKeys.includes(dept.dept_code) && (
+                      <Tag color="green" style={{ marginLeft: "8px" }}>
+                        เก็บได้:{" "}
+                        {dept.totals.total1.toLocaleString("th-TH", {
+                          minimumFractionDigits: 2,
+                        })}{" "}
+                        บาท
+                      </Tag>
+                    )}
+                  </div>
                 </div>
               }
               key={dept.dept_code}
@@ -479,59 +645,183 @@ const DataUpdate = ({ user }) => {
                     <Panel
                       header={
                         <div style={{ width: "100%" }}>
+                          {/* แถวหลัก: ชื่อ section + สรุปยอด */}
                           <div
                             style={{
                               display: "flex",
                               alignItems: "center",
-                              marginBottom: "4px",
+                              justifyContent: "space-between",
+                              width: "100%",
                             }}
                           >
-                            <Text>
-                              {section.sect_code} - {section.sect_name}
-                            </Text>
-                            <Tag color="orange" style={{ marginLeft: "8px" }}>
-                              {section.totals.count} คน
-                            </Tag>
-                          </div>
+                            {/* ชื่อ section */}
+                            <div
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                minWidth: "320px",
+                              }}
+                            >
+                              <Text>
+                                {section.sect_code} - {section.sect_name}
+                              </Text>
+                              <Tag color="orange" style={{ marginLeft: "8px" }}>
+                                {section.totals.count} คน
+                              </Tag>
+                            </div>
 
-                          {/* สรุปยอดในหัว section เมื่อปิดอยู่ */}
-                          {!sectionExpandedKeys[dept.dept_code]?.includes(
-                            `${dept.dept_code}-${section.sect_code}`
-                          ) && (
-                            <div style={{ marginTop: "8px" }}>
-                              <Row
-                                gutter={[16, 4]}
-                                style={{ fontSize: "12px" }}
+                            {/* สรุปยอดตาม columns ตาราง (เมื่อปิดอยู่) */}
+                            {!sectionExpandedKeys[dept.dept_code]?.includes(
+                              `${dept.dept_code}-${section.sect_code}`
+                            ) && (
+                              <div
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "16px",
+                                  fontSize: "12px",
+                                  flex: 1,
+                                }}
                               >
-                                <Col xs={12} sm={6} md={4}>
-                                  <Text type="secondary">เรียกเก็บ: </Text>
+                                {/* เว้นช่องว่างสำหรับ เลขสมาชิก + ชื่อ-สกุล */}
+                                <div style={{ minWidth: "320px" }}></div>
+
+                                {/* เงินเดือน */}
+                                <div
+                                  style={{
+                                    minWidth: "120px",
+                                    textAlign: "right",
+                                  }}
+                                >
+                                  <div
+                                    style={{
+                                      fontSize: "10px",
+                                      color: "#999",
+                                      marginBottom: "2px",
+                                    }}
+                                  >
+                                    เงินเดือน
+                                  </div>
+                                  <Text strong>
+                                    {section.totals.salary.toLocaleString(
+                                      "th-TH",
+                                      { minimumFractionDigits: 0 }
+                                    )}
+                                  </Text>
+                                </div>
+
+                                {/* เหลือรับ */}
+                                <div
+                                  style={{
+                                    minWidth: "120px",
+                                    textAlign: "right",
+                                  }}
+                                >
+                                  <div
+                                    style={{
+                                      fontSize: "10px",
+                                      color: "#999",
+                                      marginBottom: "2px",
+                                    }}
+                                  >
+                                    เหลือรับ
+                                  </div>
+                                  <Text strong>
+                                    {section.totals.salary.toLocaleString(
+                                      "th-TH",
+                                      { minimumFractionDigits: 0 }
+                                    )}
+                                  </Text>
+                                </div>
+
+                                {/* เรียกเก็บ */}
+                                <div
+                                  style={{
+                                    minWidth: "120px",
+                                    textAlign: "right",
+                                  }}
+                                >
+                                  <div
+                                    style={{
+                                      fontSize: "10px",
+                                      color: "#999",
+                                      marginBottom: "2px",
+                                    }}
+                                  >
+                                    เรียกเก็บ
+                                  </div>
                                   <Text strong style={{ color: "#1890ff" }}>
                                     {section.totals.money.toLocaleString(
                                       "th-TH",
-                                      { minimumFractionDigits: 0 }
+                                      { minimumFractionDigits: 2 }
                                     )}
                                   </Text>
-                                </Col>
-                                <Col xs={12} sm={6} md={4}>
-                                  <Text type="secondary">เงินทำบุญ: </Text>
+                                </div>
+
+                                {/* เงินทำบุญ */}
+                                <div
+                                  style={{
+                                    minWidth: "120px",
+                                    textAlign: "right",
+                                  }}
+                                >
+                                  <div
+                                    style={{
+                                      fontSize: "10px",
+                                      color: "#999",
+                                      marginBottom: "2px",
+                                    }}
+                                  >
+                                    เงินทำบุญ
+                                  </div>
                                   <Text strong style={{ color: "#fa8c16" }}>
                                     {section.totals.aidAmount.toLocaleString(
                                       "th-TH",
-                                      { minimumFractionDigits: 0 }
+                                      { minimumFractionDigits: 2 }
                                     )}
                                   </Text>
-                                </Col>
-                                <Col xs={12} sm={6} md={4}>
-                                  <Text type="secondary">เก็บได้: </Text>
+                                </div>
+
+                                {/* เก็บได้ */}
+                                <div
+                                  style={{
+                                    minWidth: "120px",
+                                    textAlign: "right",
+                                  }}
+                                >
+                                  <div
+                                    style={{
+                                      fontSize: "10px",
+                                      color: "#999",
+                                      marginBottom: "2px",
+                                    }}
+                                  >
+                                    เก็บได้
+                                  </div>
                                   <Text strong style={{ color: "#52c41a" }}>
                                     {section.totals.total1.toLocaleString(
                                       "th-TH",
-                                      { minimumFractionDigits: 0 }
+                                      { minimumFractionDigits: 2 }
                                     )}
                                   </Text>
-                                </Col>
-                                <Col xs={12} sm={6} md={4}>
-                                  <Text type="secondary">ผลต่าง: </Text>
+                                </div>
+
+                                {/* ผลต่าง */}
+                                <div
+                                  style={{
+                                    minWidth: "120px",
+                                    textAlign: "right",
+                                  }}
+                                >
+                                  <div
+                                    style={{
+                                      fontSize: "10px",
+                                      color: "#999",
+                                      marginBottom: "2px",
+                                    }}
+                                  >
+                                    ผลต่าง
+                                  </div>
                                   <Text
                                     strong
                                     style={{
@@ -543,13 +833,16 @@ const DataUpdate = ({ user }) => {
                                   >
                                     {section.totals.difference.toLocaleString(
                                       "th-TH",
-                                      { minimumFractionDigits: 0 }
+                                      { minimumFractionDigits: 2 }
                                     )}
                                   </Text>
-                                </Col>
-                              </Row>
-                            </div>
-                          )}
+                                </div>
+
+                                {/* หมายเหตุ */}
+                                <div style={{ minWidth: "150px" }}></div>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       }
                       key={`${dept.dept_code}-${section.sect_code}`}
@@ -591,7 +884,7 @@ const DataUpdate = ({ user }) => {
                         size="small"
                       />
 
-                      {/* Summary แยกออกมาข้างนอก Table */}
+                      {/* Summary แยกออกมาข้างนอก Table - จัดให้เหมือนหัว section */}
                       <Card
                         style={{
                           marginTop: "16px",
@@ -600,57 +893,163 @@ const DataUpdate = ({ user }) => {
                           borderRadius: 8,
                           boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
                         }}
-                        bodyStyle={{ padding: "16px" }}
+                        bodyStyle={{ padding: "12px 16px" }}
                       >
-                        <Row gutter={[16, 8]}>
-                          <Col span={24}>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            width: "100%",
+                          }}
+                        >
+                          {/* ชื่อสรุป */}
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              minWidth: "320px",
+                            }}
+                          >
                             <Text strong style={{ color: "#1890ff" }}>
-                              📊 สรุปยอดรวม {section.sect_name} - ทั้งหมด{" "}
+                              📊 สรุปยอดรวม {section.sect_name}
+                            </Text>
+                            <Tag
+                              color="blue"
+                              style={{ marginLeft: "8px", fontSize: "10px" }}
+                            >
                               {section.totals.count} คน
-                            </Text>
-                          </Col>
-                          <Col xs={12} sm={6}>
-                            <Text>
-                              เงินเดือน:{" "}
+                            </Tag>
+                          </div>
+
+                          {/* สรุปยอดตาม columns ตาราง */}
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "16px",
+                              fontSize: "12px",
+                              flex: 1,
+                            }}
+                          >
+                            {/* เว้นช่องว่างสำหรับ เลขสมาชิก + ชื่อ-สกุล */}
+                            <div style={{ minWidth: "320px" }}></div>
+
+                            {/* เงินเดือน */}
+                            <div
+                              style={{ minWidth: "120px", textAlign: "right" }}
+                            >
+                              <div
+                                style={{
+                                  fontSize: "10px",
+                                  color: "#999",
+                                  marginBottom: "2px",
+                                }}
+                              >
+                                เงินเดือน
+                              </div>
                               <Text strong>
-                                {section.totals.salary.toLocaleString("th-TH")}
+                                {section.totals.salary.toLocaleString("th-TH", {
+                                  minimumFractionDigits: 0,
+                                })}
                               </Text>
-                            </Text>
-                          </Col>
-                          <Col xs={12} sm={6}>
-                            <Text>
-                              เรียกเก็บ:{" "}
+                            </div>
+
+                            {/* เหลือรับ */}
+                            <div
+                              style={{ minWidth: "120px", textAlign: "right" }}
+                            >
+                              <div
+                                style={{
+                                  fontSize: "10px",
+                                  color: "#999",
+                                  marginBottom: "2px",
+                                }}
+                              >
+                                เหลือรับ
+                              </div>
+                              <Text strong>
+                                {section.totals.salary.toLocaleString("th-TH", {
+                                  minimumFractionDigits: 0,
+                                })}
+                              </Text>
+                            </div>
+
+                            {/* เรียกเก็บ */}
+                            <div
+                              style={{ minWidth: "120px", textAlign: "right" }}
+                            >
+                              <div
+                                style={{
+                                  fontSize: "10px",
+                                  color: "#999",
+                                  marginBottom: "2px",
+                                }}
+                              >
+                                เรียกเก็บ
+                              </div>
                               <Text strong style={{ color: "#1890ff" }}>
                                 {section.totals.money.toLocaleString("th-TH", {
                                   minimumFractionDigits: 2,
                                 })}
                               </Text>
-                            </Text>
-                          </Col>
-                          <Col xs={12} sm={6}>
-                            <Text>
-                              เงินทำบุญ:{" "}
+                            </div>
+
+                            {/* เงินทำบุญ */}
+                            <div
+                              style={{ minWidth: "120px", textAlign: "right" }}
+                            >
+                              <div
+                                style={{
+                                  fontSize: "10px",
+                                  color: "#999",
+                                  marginBottom: "2px",
+                                }}
+                              >
+                                เงินทำบุญ
+                              </div>
                               <Text strong style={{ color: "#fa8c16" }}>
                                 {section.totals.aidAmount.toLocaleString(
                                   "th-TH",
-                                  { minimumFractionDigits: 2 }
+                                  {
+                                    minimumFractionDigits: 2,
+                                  }
                                 )}
                               </Text>
-                            </Text>
-                          </Col>
-                          <Col xs={12} sm={6}>
-                            <Text>
-                              เก็บได้:{" "}
+                            </div>
+
+                            {/* เก็บได้ */}
+                            <div
+                              style={{ minWidth: "120px", textAlign: "right" }}
+                            >
+                              <div
+                                style={{
+                                  fontSize: "10px",
+                                  color: "#999",
+                                  marginBottom: "2px",
+                                }}
+                              >
+                                เก็บได้
+                              </div>
                               <Text strong style={{ color: "#52c41a" }}>
                                 {section.totals.total1.toLocaleString("th-TH", {
                                   minimumFractionDigits: 2,
                                 })}
                               </Text>
-                            </Text>
-                          </Col>
-                          <Col xs={12} sm={6}>
-                            <Text>
-                              ผลต่าง:{" "}
+                            </div>
+
+                            {/* ผลต่าง */}
+                            <div
+                              style={{ minWidth: "120px", textAlign: "right" }}
+                            >
+                              <div
+                                style={{
+                                  fontSize: "10px",
+                                  color: "#999",
+                                  marginBottom: "2px",
+                                }}
+                              >
+                                ผลต่าง
+                              </div>
                               <Text
                                 strong
                                 style={{
@@ -662,12 +1061,17 @@ const DataUpdate = ({ user }) => {
                               >
                                 {section.totals.difference.toLocaleString(
                                   "th-TH",
-                                  { minimumFractionDigits: 2 }
+                                  {
+                                    minimumFractionDigits: 2,
+                                  }
                                 )}
                               </Text>
-                            </Text>
-                          </Col>
-                        </Row>
+                            </div>
+
+                            {/* หมายเหตุ */}
+                            <div style={{ minWidth: "150px" }}></div>
+                          </div>
+                        </div>
                       </Card>
                     </Panel>
                   ))}
