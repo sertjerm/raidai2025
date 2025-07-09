@@ -35,7 +35,9 @@ const Login = ({ onLogin }) => {
       if (response.data && response.data.responseCode === 200) {
         const userData = response.data.data;
         message.success(
-          `เข้าสู่ระบบสำเร็จ! ยินดีต้อนรับคุณ ${userData.username}`
+          `เข้าสู่ระบบสำเร็จ! ยินดีต้อนรับคุณ ${
+            userData.username || userData.name || userData.userid
+          }`
         );
         // ส่ง userData object ทั้งหมดไปให้ parent component
         onLogin(userData);

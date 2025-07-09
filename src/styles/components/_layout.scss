@@ -1,20 +1,72 @@
-@use '../variables/colors' as *;
-@use '../variables/spacing' as *;
+@use "../variables/colors" as *;
+@use "../variables/spacing" as *;
 
 .admin-layout {
   min-height: 100vh;
-  
+
   .header {
     background: linear-gradient(135deg, $primary-700 0%, $primary-500 100%);
     box-shadow: 0 2px 8px $shadow-light;
   }
-  
+
   .sidebar {
     background: $bg-layout;
   }
-  
+
   .content {
     background: $bg-layout;
     padding: $content-padding;
+  }
+}
+
+// Custom Sidebar Menu Styles
+.custom-sidebar-menu {
+  .ant-menu-item {
+    &.ant-menu-item-selected {
+      background-color: rgba(255, 255, 255, 0.15) !important;
+      border-radius: 8px !important;
+      margin: 4px 8px !important;
+
+      &::after {
+        display: none !important;
+      }
+
+      .ant-menu-title-content {
+        color: #ffffff !important;
+        font-weight: 600 !important;
+      }
+
+      .anticon {
+        color: #ffffff !important;
+      }
+    }
+
+    &:hover:not(.ant-menu-item-selected) {
+      background-color: rgba(255, 255, 255, 0.08) !important;
+      border-radius: 8px !important;
+      margin: 4px 8px !important;
+
+      .ant-menu-title-content {
+        color: rgba(255, 255, 255, 0.9) !important;
+      }
+
+      .anticon {
+        color: rgba(255, 255, 255, 0.9) !important;
+      }
+    }
+
+    margin: 4px 8px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+
+    .ant-menu-title-content {
+      color: rgba(255, 255, 255, 0.75);
+      transition: all 0.3s ease;
+    }
+
+    .anticon {
+      color: rgba(255, 255, 255, 0.75);
+      transition: all 0.3s ease;
+    }
   }
 }

@@ -21,6 +21,7 @@ const { Title, Text } = Typography;
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Check localStorage for existing user session on app load
   useEffect(() => {
@@ -38,7 +39,14 @@ function App() {
         localStorage.removeItem("isLoggedIn");
       }
     }
+
+    setIsInitialized(true);
   }, []);
+
+  // Don't render anything until we've checked localStorage
+  if (!isInitialized) {
+    return null;
+  }
 
   const handleLogin = (userData) => {
     setIsLoggedIn(true);
@@ -72,17 +80,17 @@ function App() {
           <Routes>
             <Route
               path={ROUTES.DASHBOARD}
-              element={<Dashboard user={user?.userid} />}
+              element={<Dashboard user={user} />}
             />
 
             <Route
               path={ROUTES.DATA_MANAGEMENT}
-              element={<DataManagement user={user?.userid} />}
+              element={<DataManagement user={user} />}
             />
 
             <Route
               path={ROUTES.DATA_UPDATE}
-              element={<DataUpdate user={user?.userid} />}
+              element={<DataUpdate user={user} />}
             />
 
             <Route

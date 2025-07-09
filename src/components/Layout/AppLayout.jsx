@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   Layout,
@@ -101,8 +101,15 @@ function AppLayout({ user, onLogout, children }) {
         style={{
           background: "linear-gradient(180deg, #4a90e2 0%, #2c5aa0 100%)",
           boxShadow: "2px 0 8px rgba(74, 144, 226, 0.15)",
+          position: "fixed",
+          left: 0,
+          top: 0,
+          bottom: 0,
+          zIndex: 1001,
         }}
         theme="light"
+        width={200}
+        collapsedWidth={80}
       >
         {/* Logo */}
         <div
@@ -123,7 +130,7 @@ function AppLayout({ user, onLogout, children }) {
               fontWeight: "bold",
             }}
           >
-            {collapsed ? "🏛️" : "🏛️ RaiDai2025"}
+            {collapsed ? "🏛️" : "🏛️ RD2025"}
           </div>
         </div>
 
@@ -136,15 +143,23 @@ function AppLayout({ user, onLogout, children }) {
           style={{
             background: "transparent",
             border: "none",
+            fontSize: "14px",
           }}
           onClick={({ key }) => {
             navigate(key);
           }}
+          // Custom styles for menu items
+          className="custom-sidebar-menu"
         />
       </Sider>
 
       {/* Main Layout */}
-      <Layout>
+      <Layout
+        style={{
+          marginLeft: collapsed ? 80 : 200,
+          transition: "margin-left 0.2s",
+        }}
+      >
         {/* Header */}
         <Header
           style={{
@@ -155,6 +170,8 @@ function AppLayout({ user, onLogout, children }) {
             alignItems: "center",
             justifyContent: "space-between",
             zIndex: 1000,
+            position: "sticky",
+            top: 0,
           }}
         >
           <div>
@@ -169,13 +186,18 @@ function AppLayout({ user, onLogout, children }) {
                 backgroundClip: "text",
               }}
             >
-              {APP_CONFIG.name}
+              {APP_CONFIG.headerTitle}
             </Title>
           </div>
 
           <Space>
             <Text style={{ color: "#4a6cf7" }}>
-              ยินดีต้อนรับ, {user?.username || user?.userid}
+              ยินดีต้อนรับ,{" "}
+              {user?.username ||
+                user?.name ||
+                user?.fullname ||
+                user?.userid ||
+                "ผู้ใช้งาน"}
             </Text>
             <Dropdown menu={userMenu} placement="bottomRight" arrow>
               <Button
@@ -204,7 +226,8 @@ function AppLayout({ user, onLogout, children }) {
           style={{
             margin: 0,
             background: "linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%)",
-            minHeight: "calc(100vh - 64px - 70px)", // Full height minus header and footer
+            minHeight: "100vh",
+            paddingBottom: "60px", // เว้นพื้นที่สำหรับ footer
           }}
         >
           {/* Breadcrumb */}
@@ -221,7 +244,7 @@ function AppLayout({ user, onLogout, children }) {
           <div
             style={{
               padding: "24px",
-              minHeight: "calc(100vh - 64px - 70px - 56px)", // Adjust for breadcrumb
+              minHeight: "calc(100vh - 64px - 56px)", // ปรับให้เหมาะกับ sticky header และ breadcrumb
             }}
           >
             {children}
@@ -232,13 +255,22 @@ function AppLayout({ user, onLogout, children }) {
         <Footer
           style={{
             textAlign: "center",
-            background: "#ffffff",
-            borderTop: "1px solid #e6f3ff",
-            padding: "16px 24px",
+            background: "linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)",
+            borderTop: "1px solid #dee2e6",
+            padding: "12px 24px",
+            fontSize: "12px",
+            color: "#6c757d",
+            boxShadow: "0 -2px 8px rgba(0,0,0,0.08)",
           }}
         >
-          <Text type="secondary">
-            {APP_CONFIG.name} ©{APP_CONFIG.year} | พัฒนาสำหรับระบบราชการไทย ❤️
+          <Text
+            type="secondary"
+            style={{ fontSize: "12px", lineHeight: "1.4" }}
+          >
+            <strong>{APP_CONFIG.name}</strong> ©{APP_CONFIG.year} |
+            ฝ่ายเทคโนโลยีสารสนเทศ
+            <br />
+            สหกรณ์ออมทรัพย์มหาวิทยาลัยเกษตรศาสตร์
           </Text>
         </Footer>
       </Layout>
