@@ -8,9 +8,9 @@ export const APP_CONFIG = {
 
 export const ROUTES = {
   LOGIN: "/login",
-  DASHBOARD: "/",
+  DASHBOARD: "/dashboard",
   DATA_MANAGEMENT: "/data",
-  DATA_UPDATE: "/data-update",
+  DATA_UPDATE: "/",
   SETTINGS: "/settings",
 };
 

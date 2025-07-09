@@ -79,6 +79,11 @@ function App() {
         <AppLayout user={user} onLogout={handleLogout}>
           <Routes>
             <Route
+              path={ROUTES.DATA_UPDATE}
+              element={<DataUpdate user={user} />}
+            />
+
+            <Route
               path={ROUTES.DASHBOARD}
               element={<Dashboard user={user} />}
             />
@@ -86,11 +91,6 @@ function App() {
             <Route
               path={ROUTES.DATA_MANAGEMENT}
               element={<DataManagement user={user} />}
-            />
-
-            <Route
-              path={ROUTES.DATA_UPDATE}
-              element={<DataUpdate user={user} />}
             />
 
             <Route
@@ -145,7 +145,7 @@ function App() {
 
             <Route
               path="*"
-              element={<Navigate to={ROUTES.DASHBOARD} replace />}
+              element={<Navigate to={ROUTES.DATA_UPDATE} replace />}
             />
           </Routes>
         </AppLayout>

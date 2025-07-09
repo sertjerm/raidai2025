@@ -77,16 +77,25 @@ function AppLayout({ user, onLogout, children }) {
   // Get breadcrumb based on current path
   const getBreadcrumb = () => {
     const breadcrumbMap = {
-      [ROUTES.DASHBOARD]: [{ title: <HomeOutlined /> }, { title: "หน้าแรก" }],
-      [ROUTES.DATA_MANAGEMENT]: [
-        { title: <HomeOutlined /> },
-        { title: "ข้อมูลหลัก" },
-      ],
       [ROUTES.DATA_UPDATE]: [
         { title: <HomeOutlined /> },
         { title: "ปรับปรุงข้อมูล" },
       ],
-      [ROUTES.SETTINGS]: [{ title: <HomeOutlined /> }, { title: "ตั้งค่า" }],
+      [ROUTES.DASHBOARD]: [
+        { title: <HomeOutlined /> },
+        { title: "ปรับปรุงข้อมูล" },
+        { title: "หน้าแรก" },
+      ],
+      [ROUTES.DATA_MANAGEMENT]: [
+        { title: <HomeOutlined /> },
+        { title: "ปรับปรุงข้อมูล" },
+        { title: "ข้อมูลหลัก" },
+      ],
+      [ROUTES.SETTINGS]: [
+        { title: <HomeOutlined /> },
+        { title: "ปรับปรุงข้อมูล" },
+        { title: "ตั้งค่า" },
+      ],
     };
     return breadcrumbMap[location.pathname] || [{ title: <HomeOutlined /> }];
   };
