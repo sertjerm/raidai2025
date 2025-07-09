@@ -1,15 +1,9 @@
-Options -MultiViews
 RewriteEngine On
 RewriteCond %{REQUEST_FILENAME} !-f
-RewriteRule ^ index.html [QR,L]
-
-# Cache static assets
-<FilesMatch "\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2)$">
-  ExpiresActive On
-  ExpiresDefault "access plus 1 month"
-  Header append Cache-Control "public"
-</FilesMatch>
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /raidai2025/index.html [L]
 
 # Correct MIME types
+
 AddType application/javascript .js
 AddType text/css .css

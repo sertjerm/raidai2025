@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "node deploy.js",
+    "build:deploy": "npm run build && npm run deploy"
   },
   "dependencies": {
     "@ant-design/icons": "^6.0.0",
@@ -23,9 +25,11 @@
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@vitejs/plugin-react": "^4.5.2",
+    "dotenv": "^17.1.0",
     "eslint": "^9.29.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
+    "ftp-deploy": "^2.4.7",
     "globals": "^16.2.0",
     "sass": "^1.89.2",
     "vite": "^7.0.0"

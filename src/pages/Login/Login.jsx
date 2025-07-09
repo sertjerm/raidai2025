@@ -82,7 +82,7 @@ const Login = ({ onLogin }) => {
         }}
       >
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-          <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>🏛️</div>
+          {/* <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>🏛️</div> */}
           <Title
             level={2}
             style={{

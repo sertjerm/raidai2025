@@ -2,7 +2,7 @@ export const APP_CONFIG = {
   name: 'ระบบเงินรายได้ 2025',
   version: '1.0.0',
   year: '2025',
-  defaultUser: '000001',
+  defaultUser: '021000',
 };
 
 export const ROUTES = {
