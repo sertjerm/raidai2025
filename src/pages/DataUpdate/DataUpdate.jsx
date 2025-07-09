@@ -11,6 +11,10 @@ import {
   Tag,
   Space,
   Collapse,
+  Button,
+  Input,
+  InputNumber,
+  Popconfirm,
 } from "antd";
 import {
   TeamOutlined,
@@ -18,6 +22,9 @@ import {
   BankOutlined,
   CheckCircleOutlined,
   CaretRightOutlined,
+  EditOutlined,
+  SaveOutlined,
+  CloseOutlined,
 } from "@ant-design/icons";
 import axios from "axios";
 
@@ -32,6 +39,21 @@ const DataUpdate = ({ user }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [sectionExpandedKeys, setSectionExpandedKeys] = useState({});
   const [departmentExpandedKeys, setDepartmentExpandedKeys] = useState([]);
+  const [editingRows, setEditingRows] = useState({}); // เก็บ row ที่กำลัง edit
+  const [editingData, setEditingData] = useState({}); // เก็บข้อมูลที่กำลัง edit
+
+  // Helper functions
+  const formatCurrency = (value) => {
+    if (value === null || value === undefined || isNaN(value)) return 0;
+    const rounded = Math.round(value * 100) / 100;
+    // ป้องกัน -0.00 โดยแปลงเป็น 0 ถ้าค่าใกล้ศูนย์มาก
+    return Math.abs(rounded) < 0.01 ? 0 : rounded;
+  };
+
+  const getDifferenceColor = (value) => {
+    if (value < 0) return "#ff4d4f"; // แดง (ลบ)
+    return "#52c41a"; // เขียว (ศูนย์และบวก)
+  };
 
   // Initialize user from props or localStorage
   useEffect(() => {
@@ -132,13 +154,14 @@ const DataUpdate = ({ user }) => {
       }
 
       // Calculate difference: total1 + aidAmount - total2
-      const difference =
-        (item.TOTAL1 || 0) + (item.INVC_AIDAMNT || 0) - (item.TOTAL2 || 0);
+      // แก้ไขปัญหา -0.00 โดยใช้ Math.round และตรวจสอบค่าใกล้ 0
+      const rawDifference = (item.TOTAL1 || 0) + (item.INVC_AIDAMNT || 0) - (item.TOTAL2 || 0);
+      const difference = Math.abs(rawDifference) < 0.01 ? 0 : Math.round(rawDifference * 100) / 100;
 
       // Add member to section
       const member = {
         ...item,
-        difference: difference,
+        difference: formatCurrency(difference),
       };
 
       departments[deptKey].sections[sectKey].members.push(member);
@@ -162,6 +185,26 @@ const DataUpdate = ({ user }) => {
       dept.totals.total1 += item.TOTAL1 || 0;
       dept.totals.total2 += item.TOTAL2 || 0;
       dept.totals.difference += difference;
+    });
+
+    // Sort members in each section by mb_code (เลขสมาชิก) เรียงจากน้อยไปมาก
+    Object.values(departments).forEach(dept => {
+      Object.values(dept.sections).forEach(section => {
+        section.members.sort((a, b) => {
+          const numA = parseInt(a.mb_code) || 0;
+          const numB = parseInt(b.mb_code) || 0;
+          return numA - numB;
+        });
+      });
+    });
+
+    // แก้ไขปัญหา -0.00 ใน totals โดยใช้ formatCurrency
+    Object.values(departments).forEach(dept => {
+      dept.totals.difference = formatCurrency(dept.totals.difference);
+      
+      Object.values(dept.sections).forEach(section => {
+        section.totals.difference = formatCurrency(section.totals.difference);
+      });
     });
 
     setProcessedData(departments);
@@ -257,11 +300,28 @@ const DataUpdate = ({ user }) => {
       key: "mb_money",
       width: 120,
       align: "right",
-      render: (value) => (
-        <Text style={{ color: "#1890ff" }}>
-          {value?.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
-        </Text>
-      ),
+      render: (value, record) => {
+        const rowKey = record.mb_code;
+        const isEditing = editingRows[rowKey];
+
+        if (isEditing) {
+          return (
+            <InputNumber
+              value={editingData[rowKey]?.mb_money}
+              onChange={(val) => updateEditingData(rowKey, "mb_money", val)}
+              style={{ width: "100%" }}
+              precision={2}
+              min={0}
+            />
+          );
+        }
+
+        return (
+          <Text style={{ color: "#1890ff" }}>
+            {value?.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+          </Text>
+        );
+      },
     },
     {
       title: "เงินทำบุญ",
@@ -269,11 +329,28 @@ const DataUpdate = ({ user }) => {
       key: "INVC_AIDAMNT",
       width: 120,
       align: "right",
-      render: (value) => (
-        <Text style={{ color: "#fa8c16" }}>
-          {value?.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
-        </Text>
-      ),
+      render: (value, record) => {
+        const rowKey = record.mb_code;
+        const isEditing = editingRows[rowKey];
+
+        if (isEditing) {
+          return (
+            <InputNumber
+              value={editingData[rowKey]?.INVC_AIDAMNT}
+              onChange={(val) => updateEditingData(rowKey, "INVC_AIDAMNT", val)}
+              style={{ width: "100%" }}
+              precision={2}
+              min={0}
+            />
+          );
+        }
+
+        return (
+          <Text style={{ color: "#fa8c16" }}>
+            {value?.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+          </Text>
+        );
+      },
     },
     {
       title: "เก็บได้",
@@ -293,20 +370,148 @@ const DataUpdate = ({ user }) => {
       key: "difference",
       width: 120,
       align: "right",
-      render: (value) => (
-        <Text style={{ color: value >= 0 ? "#52c41a" : "#ff4d4f" }}>
-          {value?.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
-        </Text>
-      ),
+      render: (value) => {
+        const formatted = formatCurrency(value);
+        return (
+          <Text style={{ color: getDifferenceColor(formatted), fontWeight: "600" }}>
+            {formatted.toFixed(2)}
+          </Text>
+        );
+      },
     },
     {
       title: "หมายเหตุ",
       dataIndex: "mb_note",
       key: "mb_note",
       width: 150,
-      render: (note) => note || "-",
+      render: (note, record) => {
+        const rowKey = record.mb_code;
+        const isEditing = editingRows[rowKey];
+
+        if (isEditing) {
+          return (
+            <Input
+              value={editingData[rowKey]?.mb_note}
+              onChange={(e) =>
+                updateEditingData(rowKey, "mb_note", e.target.value)
+              }
+              placeholder="หมายเหตุ"
+            />
+          );
+        }
+
+        return note || "-";
+      },
+    },
+    {
+      title: "จัดการ",
+      key: "action",
+      width: 120,
+      align: "center",
+      render: (_, record) => {
+        const rowKey = record.mb_code;
+        const isEditing = editingRows[rowKey];
+
+        if (isEditing) {
+          return (
+            <Space>
+              <Popconfirm
+                title="บันทึกการเปลี่ยนแปลง?"
+                onConfirm={() => saveEdit(record)}
+                okText="บันทึก"
+                cancelText="ยกเลิก"
+              >
+                <Button type="primary" size="small" icon={<SaveOutlined />} />
+              </Popconfirm>
+              <Button
+                size="small"
+                icon={<CloseOutlined />}
+                onClick={() => cancelEdit(record)}
+              />
+            </Space>
+          );
+        }
+
+        return (
+          <Button
+            type="text"
+            size="small"
+            icon={<EditOutlined />}
+            onClick={() => startEdit(record)}
+          />
+        );
+      },
     },
   ];
+
+  // ฟังก์ชันเริ่มแก้ไข
+  const startEdit = (record) => {
+    const rowKey = record.mb_code;
+    setEditingRows({ ...editingRows, [rowKey]: true });
+    setEditingData({
+      ...editingData,
+      [rowKey]: {
+        mb_money: record.mb_money,
+        INVC_AIDAMNT: record.INVC_AIDAMNT,
+        mb_note: record.mb_note || "",
+      },
+    });
+  };
+
+  // ฟังก์ชันยกเลิกการแก้ไข
+  const cancelEdit = (record) => {
+    const rowKey = record.mb_code;
+    const newEditingRows = { ...editingRows };
+    const newEditingData = { ...editingData };
+    delete newEditingRows[rowKey];
+    delete newEditingData[rowKey];
+    setEditingRows(newEditingRows);
+    setEditingData(newEditingData);
+  };
+
+  // ฟังก์ชันบันทึกข้อมูล
+  const saveEdit = async (record) => {
+    const rowKey = record.mb_code;
+    const editData = editingData[rowKey];
+
+    try {
+      // เรียก API เพื่อบันทึกข้อมูล
+      const updateData = {
+        mb_code: record.mb_code,
+        mb_money: editData.mb_money,
+        INVC_AIDAMNT: editData.INVC_AIDAMNT,
+        mb_note: editData.mb_note,
+      };
+
+      // TODO: เรียก API update จริง
+      console.log("Saving data:", updateData);
+
+      // Mock API call
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      message.success("บันทึกข้อมูลสำเร็จ");
+
+      // ออกจาก edit mode
+      cancelEdit(record);
+
+      // Refresh ข้อมูลใหม่
+      fetchData();
+    } catch (error) {
+      console.error("Error saving data:", error);
+      message.error("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
+    }
+  };
+
+  // ฟังก์ชันอัพเดทข้อมูลที่กำลังแก้ไข
+  const updateEditingData = (rowKey, field, value) => {
+    setEditingData({
+      ...editingData,
+      [rowKey]: {
+        ...editingData[rowKey],
+        [field]: value,
+      },
+    });
+  };
 
   if (loading) {
     return (
@@ -336,8 +541,7 @@ const DataUpdate = ({ user }) => {
       aidAmount: acc.aidAmount + dept.totals.aidAmount,
       total1: acc.total1 + dept.totals.total1,
       total2: acc.total2 + dept.totals.total2,
-      difference:
-        Math.round((acc.difference + dept.totals.difference) * 100) / 100,
+      difference: formatCurrency(acc.difference + dept.totals.difference),
     }),
     {
       count: 0,
@@ -421,10 +625,10 @@ const DataUpdate = ({ user }) => {
             >
               <Statistic
                 title="ผลต่างรวม"
-                value={grandTotals.difference}
+                value={formatCurrency(grandTotals.difference)}
                 precision={2}
                 valueStyle={{
-                  color: "#d32f2f",
+                  color: getDifferenceColor(formatCurrency(grandTotals.difference)),
                   fontSize: "20px",
                   fontWeight: "bold",
                 }}
@@ -485,7 +689,7 @@ const DataUpdate = ({ user }) => {
                         display: "flex",
                         fontSize: "12px",
                         overflow: "hidden",
-                        width: "1200px", // ตรงกับ table scroll width
+                        width: "1320px", // ตรงกับ table scroll width
                       }}
                     >
                       {/* เลขสมาชิก */}
@@ -634,20 +838,18 @@ const DataUpdate = ({ user }) => {
                         <Text
                           strong
                           style={{
-                            color:
-                              dept.totals.difference >= 0
-                                ? "#52c41a"
-                                : "#ff4d4f",
+                            color: getDifferenceColor(dept.totals.difference),
                           }}
                         >
-                          {dept.totals.difference.toLocaleString("th-TH", {
-                            minimumFractionDigits: 2,
-                          })}
+                          {formatCurrency(dept.totals.difference).toFixed(2)}
                         </Text>
                       </div>
 
                       {/* หมายเหตุ */}
                       <div style={{ width: "150px", padding: "4px 8px" }}></div>
+
+                      {/* จัดการ */}
+                      <div style={{ width: "120px", padding: "4px 8px" }}></div>
                     </div>
                   </div>
                 </div>
@@ -704,7 +906,7 @@ const DataUpdate = ({ user }) => {
                                   display: "flex",
                                   fontSize: "12px",
                                   overflow: "hidden",
-                                  width: "1200px", // ตรงกับ table scroll width
+                                  width: "1320px", // ตรงกับ table scroll width
                                 }}
                               >
                                 {/* เลขสมาชิก */}
@@ -862,22 +1064,21 @@ const DataUpdate = ({ user }) => {
                                   <Text
                                     strong
                                     style={{
-                                      color:
-                                        section.totals.difference >= 0
-                                          ? "#52c41a"
-                                          : "#ff4d4f",
+                                      color: getDifferenceColor(section.totals.difference),
                                     }}
                                   >
-                                    {section.totals.difference.toLocaleString(
-                                      "th-TH",
-                                      { minimumFractionDigits: 2 }
-                                    )}
+                                    {formatCurrency(section.totals.difference).toFixed(2)}
                                   </Text>
                                 </div>
 
                                 {/* หมายเหตุ */}
                                 <div
                                   style={{ width: "150px", padding: "4px 8px" }}
+                                ></div>
+
+                                {/* จัดการ */}
+                                <div
+                                  style={{ width: "120px", padding: "4px 8px" }}
                                 ></div>
                               </div>
                             )}
@@ -890,7 +1091,7 @@ const DataUpdate = ({ user }) => {
                         columns={memberColumns}
                         dataSource={section.members}
                         rowKey="mb_code"
-                        scroll={{ x: 1200 }}
+                        scroll={{ x: 1320 }}
                         pagination={{
                           current:
                             paginationSettings[
@@ -952,6 +1153,7 @@ const DataUpdate = ({ user }) => {
                             <col style={{ width: "120px" }} />
                             <col style={{ width: "120px" }} />
                             <col style={{ width: "150px" }} />
+                            <col style={{ width: "120px" }} />
                           </colgroup>
                           <tbody>
                             <tr>
@@ -1060,22 +1262,24 @@ const DataUpdate = ({ user }) => {
                                   padding: "8px 8px",
                                   textAlign: "right",
                                   fontWeight: "600",
-                                  color:
-                                    section.totals.difference >= 0
-                                      ? "#52c41a"
-                                      : "#ff4d4f",
+                                  color: getDifferenceColor(section.totals.difference),
                                   borderBottom: "none",
                                 }}
                               >
-                                {section.totals.difference.toLocaleString(
-                                  "th-TH",
-                                  {
-                                    minimumFractionDigits: 2,
-                                  }
-                                )}
+                                {formatCurrency(section.totals.difference).toFixed(2)}
                               </td>
 
                               {/* หมายเหตุ */}
+                              <td
+                                style={{
+                                  padding: "8px 8px",
+                                  borderBottom: "none",
+                                }}
+                              >
+                                {/* ว่างไว้ */}
+                              </td>
+
+                              {/* จัดการ */}
                               <td
                                 style={{
                                   padding: "8px 8px",
