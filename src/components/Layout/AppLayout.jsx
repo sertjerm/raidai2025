@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Layout,
   Menu,
@@ -13,7 +13,7 @@ import {
 import {
   DashboardOutlined,
   DatabaseOutlined,
-  FileTextOutlined,
+  EditOutlined,
   SettingOutlined,
   UserOutlined,
   LogoutOutlined,
@@ -28,6 +28,7 @@ const { Title, Text } = Typography;
 function AppLayout({ user, onLogout, children }) {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   // Menu items based on your constants
   const menuItems = [
@@ -42,9 +43,9 @@ function AppLayout({ user, onLogout, children }) {
       label: "ข้อมูลหลัก",
     },
     {
-      key: ROUTES.REPORTS,
-      icon: <FileTextOutlined />,
-      label: "รายงาน",
+      key: ROUTES.DATA_UPDATE,
+      icon: <EditOutlined />,
+      label: "ปรับปรุงข้อมูล",
     },
     {
       key: ROUTES.SETTINGS,
@@ -134,7 +135,7 @@ function AppLayout({ user, onLogout, children }) {
             border: "none",
           }}
           onClick={({ key }) => {
-            window.location.pathname = key;
+            navigate(key);
           }}
         />
       </Sider>
@@ -170,7 +171,9 @@ function AppLayout({ user, onLogout, children }) {
           </div>
 
           <Space>
-            <Text style={{ color: "#4a6cf7" }}>ยินดีต้อนรับ, {user}</Text>
+            <Text style={{ color: "#4a6cf7" }}>
+              ยินดีต้อนรับ, {user?.username || user?.userid}
+            </Text>
             <Dropdown menu={userMenu} placement="bottomRight" arrow>
               <Button
                 type="text"

@@ -22,7 +22,7 @@ const Login = ({ onLogin }) => {
       const config = {
         method: "post",
         maxBodyLength: Infinity,
-        url: "https://apps4.coop.ku.ac.th/raidai2025Service/service1.svc/Login",
+        url: "/api/raidai2025Service/service1.svc/Login",
         headers: {
           "Content-Type": "application/json",
         },
@@ -37,8 +37,8 @@ const Login = ({ onLogin }) => {
         message.success(
           `เข้าสู่ระบบสำเร็จ! ยินดีต้อนรับคุณ ${userData.username}`
         );
-        // ส่ง username และข้อมูลผู้ใช้ไปให้ parent component
-        onLogin(userData.username);
+        // ส่ง userData object ทั้งหมดไปให้ parent component
+        onLogin(userData);
       } else {
         message.error("รหัสผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง");
       }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -11,6 +11,8 @@ import { raidaiTheme } from "@config/theme";
 import { ROUTES, APP_CONFIG } from "@config/constants";
 import Login from "@pages/Login";
 import Dashboard from "@pages/Dashboard";
+import DataManagement from "@pages/DataManagement";
+import DataUpdate from "@pages/DataUpdate";
 import { AppLayout } from "@components/Layout";
 
 const { Title, Text } = Typography;
@@ -20,14 +22,38 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
 
-  const handleLogin = (username) => {
+  // Check localStorage for existing user session on app load
+  useEffect(() => {
+    const savedUser = localStorage.getItem("currentUser");
+    const savedLoginStatus = localStorage.getItem("isLoggedIn");
+
+    if (savedUser && savedLoginStatus === "true") {
+      try {
+        const userData = JSON.parse(savedUser);
+        setUser(userData);
+        setIsLoggedIn(true);
+      } catch (error) {
+        console.error("Error parsing saved user data:", error);
+        localStorage.removeItem("currentUser");
+        localStorage.removeItem("isLoggedIn");
+      }
+    }
+  }, []);
+
+  const handleLogin = (userData) => {
     setIsLoggedIn(true);
-    setUser(username);
+    setUser(userData); // เก็บ user object ทั้งหมด
+    // Save to localStorage
+    localStorage.setItem("currentUser", JSON.stringify(userData));
+    localStorage.setItem("isLoggedIn", "true");
   };
 
   const handleLogout = () => {
     setIsLoggedIn(false);
     setUser(null);
+    // Clear localStorage
+    localStorage.removeItem("currentUser");
+    localStorage.removeItem("isLoggedIn");
     message.success("ออกจากระบบเรียบร้อยแล้ว");
   };
 
@@ -44,64 +70,19 @@ function App() {
       <Router basename="/raidai2025">
         <AppLayout user={user} onLogout={handleLogout}>
           <Routes>
-            <Route path={ROUTES.DASHBOARD} element={<Dashboard />} />
-
             <Route
-              path={ROUTES.DATA_MANAGEMENT}
-              element={
-                <div
-                  style={{
-                    background: "#ffffff",
-                    borderRadius: "16px",
-                    padding: "2rem",
-                    textAlign: "center",
-                    boxShadow: "0 4px 16px rgba(74, 144, 226, 0.15)",
-                    border: "1px solid #e6f3ff",
-                  }}
-                >
-                  <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>
-                    📋
-                  </div>
-                  <Title
-                    level={3}
-                    style={{ color: "#1a365d", marginBottom: "0.5rem" }}
-                  >
-                    ข้อมูลหลัก
-                  </Title>
-                  <Text style={{ color: "#4a6cf7", fontSize: "16px" }}>
-                    หน้านี้พร้อมสำหรับการพัฒนาฟีเจอร์การจัดการข้อมูล
-                  </Text>
-                </div>
-              }
+              path={ROUTES.DASHBOARD}
+              element={<Dashboard user={user?.userid} />}
             />
 
             <Route
-              path={ROUTES.REPORTS}
-              element={
-                <div
-                  style={{
-                    background: "#ffffff",
-                    borderRadius: "16px",
-                    padding: "2rem",
-                    textAlign: "center",
-                    boxShadow: "0 4px 16px rgba(74, 144, 226, 0.15)",
-                    border: "1px solid #e6f3ff",
-                  }}
-                >
-                  <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>
-                    📈
-                  </div>
-                  <Title
-                    level={3}
-                    style={{ color: "#1a365d", marginBottom: "0.5rem" }}
-                  >
-                    รายงาน
-                  </Title>
-                  <Text style={{ color: "#4a6cf7", fontSize: "16px" }}>
-                    หน้านี้พร้อมสำหรับการพัฒนาฟีเจอร์รายงานและการวิเคราะห์ข้อมูล
-                  </Text>
-                </div>
-              }
+              path={ROUTES.DATA_MANAGEMENT}
+              element={<DataManagement user={user?.userid} />}
+            />
+
+            <Route
+              path={ROUTES.DATA_UPDATE}
+              element={<DataUpdate user={user?.userid} />}
             />
 
             <Route

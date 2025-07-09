@@ -1,41 +1,41 @@
 export const APP_CONFIG = {
-  name: 'ระบบเงินรายได้ 2025',
-  version: '1.0.0',
-  year: '2025',
-  defaultUser: '021000',
+  name: "ระบบเงินรายได้ 2025",
+  version: "1.0.0",
+  year: "2025",
+  defaultUser: "021000",
 };
 
 export const ROUTES = {
-  LOGIN: '/login',
-  DASHBOARD: '/',
-  DATA_MANAGEMENT: '/data',
-  REPORTS: '/reports',
-  SETTINGS: '/settings',
+  LOGIN: "/login",
+  DASHBOARD: "/",
+  DATA_MANAGEMENT: "/data",
+  DATA_UPDATE: "/data-update",
+  SETTINGS: "/settings",
 };
 
 export const MENU_ITEMS = [
   {
-    key: 'dashboard',
+    key: "dashboard",
     path: ROUTES.DASHBOARD,
-    label: 'หน้าแรก',
-    icon: 'DashboardOutlined',
+    label: "หน้าแรก",
+    icon: "DashboardOutlined",
   },
   {
-    key: 'data',
+    key: "data",
     path: ROUTES.DATA_MANAGEMENT,
-    label: 'ข้อมูลหลัก',
-    icon: 'DatabaseOutlined',
+    label: "ข้อมูลหลัก",
+    icon: "DatabaseOutlined",
   },
   {
-    key: 'reports',
-    path: ROUTES.REPORTS,
-    label: 'รายงาน',
-    icon: 'FileTextOutlined',
+    key: "data-update",
+    path: ROUTES.DATA_UPDATE,
+    label: "ปรับปรุงข้อมูล",
+    icon: "EditOutlined",
   },
   {
-    key: 'settings',
+    key: "settings",
     path: ROUTES.SETTINGS,
-    label: 'ตั้งค่า',
-    icon: 'SettingOutlined',
+    label: "ตั้งค่า",
+    icon: "SettingOutlined",
   },
 ];
