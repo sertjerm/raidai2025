@@ -108,7 +108,7 @@ const Login = ({ onLogin }) => {
         display: "flex",
         position: "relative",
         overflow: "hidden",
-        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+        background: "linear-gradient(135deg, #2c5aa0 0%, #4a90e2 100%)",
       }}
     >
       {/* Animated Background Elements */}
@@ -120,7 +120,7 @@ const Login = ({ onLogin }) => {
           width: "100%",
           height: "100%",
           background: `
-            radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+            radial-gradient(circle at 20% 80%, rgba(44, 90, 160, 0.3) 0%, transparent 50%),
             radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
             radial-gradient(circle at 40% 40%, rgba(74, 144, 226, 0.2) 0%, transparent 50%)
           `,
@@ -250,14 +250,14 @@ const Login = ({ onLogin }) => {
               style={{
                 width: "80px",
                 height: "80px",
-                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                background: "linear-gradient(135deg, #2c5aa0 0%, #4a90e2 100%)",
                 borderRadius: "20px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 margin: "0 auto 1.5rem",
                 fontSize: "2rem",
-                boxShadow: "0 8px 16px rgba(102, 126, 234, 0.4)",
+                boxShadow: "0 8px 16px rgba(74, 144, 226, 0.4)",
               }}
             >
               🚀
@@ -266,7 +266,7 @@ const Login = ({ onLogin }) => {
               level={2}
               style={{
                 color: "#1a365d",
-                background: "linear-gradient(45deg, #667eea, #764ba2)",
+                background: "linear-gradient(45deg, #2c5aa0, #4a90e2)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 backgroundClip: "text",
@@ -299,7 +299,7 @@ const Login = ({ onLogin }) => {
               rules={[{ required: true, message: "กรุณากรอกรหัสผู้ใช้งาน!" }]}
             >
               <Input
-                prefix={<UserOutlined style={{ color: "#667eea" }} />}
+                prefix={<UserOutlined style={{ color: "#4a90e2" }} />}
                 placeholder="รหัสผู้ใช้งาน"
                 style={{
                   borderRadius: "12px",
@@ -309,9 +309,9 @@ const Login = ({ onLogin }) => {
                   transition: "all 0.3s ease",
                 }}
                 onFocus={(e) => {
-                  e.target.style.borderColor = "#667eea";
+                  e.target.style.borderColor = "#4a90e2";
                   e.target.style.boxShadow =
-                    "0 0 0 3px rgba(102, 126, 234, 0.1)";
+                    "0 0 0 3px rgba(74, 144, 226, 0.1)";
                 }}
                 onBlur={(e) => {
                   e.target.style.borderColor = "#e2e8f0";
@@ -325,7 +325,7 @@ const Login = ({ onLogin }) => {
               rules={[{ required: true, message: "กรุณากรอกรหัสผ่าน!" }]}
             >
               <Input.Password
-                prefix={<LockOutlined style={{ color: "#667eea" }} />}
+                prefix={<LockOutlined style={{ color: "#4a90e2" }} />}
                 placeholder="รหัสผ่าน"
                 style={{
                   borderRadius: "12px",
@@ -335,9 +335,9 @@ const Login = ({ onLogin }) => {
                   transition: "all 0.3s ease",
                 }}
                 onFocus={(e) => {
-                  e.target.style.borderColor = "#667eea";
+                  e.target.style.borderColor = "#4a90e2";
                   e.target.style.boxShadow =
-                    "0 0 0 3px rgba(102, 126, 234, 0.1)";
+                    "0 0 0 3px rgba(74, 144, 226, 0.1)";
                 }}
                 onBlur={(e) => {
                   e.target.style.borderColor = "#e2e8f0";
@@ -358,20 +358,20 @@ const Login = ({ onLogin }) => {
                   fontSize: "16px",
                   borderRadius: "12px",
                   background:
-                    "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                    "linear-gradient(135deg, #2c5aa0 0%, #4a90e2 100%)",
                   border: "none",
-                  boxShadow: "0 8px 16px rgba(102, 126, 234, 0.4)",
+                  boxShadow: "0 8px 16px rgba(74, 144, 226, 0.4)",
                   transition: "all 0.3s ease",
                 }}
                 onMouseEnter={(e) => {
                   e.target.style.transform = "translateY(-2px)";
                   e.target.style.boxShadow =
-                    "0 12px 24px rgba(102, 126, 234, 0.5)";
+                    "0 12px 24px rgba(74, 144, 226, 0.5)";
                 }}
                 onMouseLeave={(e) => {
                   e.target.style.transform = "translateY(0)";
                   e.target.style.boxShadow =
-                    "0 8px 16px rgba(102, 126, 234, 0.4)";
+                    "0 8px 16px rgba(74, 144, 226, 0.4)";
                 }}
               >
                 {loading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
