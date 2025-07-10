@@ -31,7 +31,6 @@ import { getApiUrl } from "@config/api";
 import axios from "axios";
 
 const { Title, Text } = Typography;
-const { Panel } = Collapse;
 
 const DataUpdate = ({ user }) => {
   const [loading, setLoading] = useState(false);
@@ -1225,211 +1224,209 @@ const DataUpdate = ({ user }) => {
             : []
         }
         onChange={handleDepartmentChange}
-      >
-        {Object.values(processedData)
+        items={Object.values(processedData)
           .sort((a, b) => a.dept_code.localeCompare(b.dept_code))
-          .map((dept, deptIndex) => (
-            <Panel
-              header={
-                <div style={{ width: "100%" }}>
-                  {/* แถวหลัก: ชื่อหน่วยงาน + สรุปยอด */}
+          .map((dept, deptIndex) => ({
+            key: dept.dept_code,
+            label: (
+              <div style={{ width: "100%" }}>
+                {/* แถวหลัก: ชื่อหน่วยงาน + สรุปยอด */}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    width: "100%",
+                  }}
+                >
+                  {/* ชื่อหน่วยงาน */}
                   <div
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      justifyContent: "space-between",
-                      width: "100%",
+                      minWidth: "320px",
                     }}
                   >
-                    {/* ชื่อหน่วยงาน */}
+                    <Text strong>
+                      {dept.dept_code} - {dept.dept_name}
+                    </Text>
+                    <Tag color="blue" style={{ marginLeft: "8px" }}>
+                      {dept.totals.count} คน
+                    </Tag>
+                  </div>
+
+                  {/* สรุปยอดตาม columns ตาราง - แสดงเสมอ */}
+                  <div
+                    style={{
+                      display: "flex",
+                      fontSize: "12px",
+                      overflow: "hidden",
+                      width: "1320px", // ตรงกับ table scroll width
+                    }}
+                  >
+                    {/* เลขสมาชิก */}
+                    <div style={{ width: "120px", padding: "4px 8px" }}></div>
+
+                    {/* ชื่อ-สกุล */}
+                    <div style={{ width: "200px", padding: "4px 8px" }}></div>
+
+                    {/* เงินเดือน */}
                     <div
                       style={{
-                        display: "flex",
-                        alignItems: "center",
-                        minWidth: "320px",
+                        width: "120px",
+                        textAlign: "right",
+                        padding: "4px 8px",
                       }}
                     >
+                      <div
+                        style={{
+                          fontSize: "10px",
+                          color: "#999",
+                          marginBottom: "2px",
+                        }}
+                      >
+                        เงินเดือน
+                      </div>
                       <Text strong>
-                        {dept.dept_code} - {dept.dept_name}
+                        {dept.totals.salary.toLocaleString("th-TH", {
+                          minimumFractionDigits: 2,
+                        })}
                       </Text>
-                      <Tag color="blue" style={{ marginLeft: "8px" }}>
-                        {dept.totals.count} คน
-                      </Tag>
                     </div>
 
-                    {/* สรุปยอดตาม columns ตาราง - แสดงเสมอ */}
+                    {/* เหลือรับ */}
                     <div
                       style={{
-                        display: "flex",
-                        fontSize: "12px",
-                        overflow: "hidden",
-                        width: "1320px", // ตรงกับ table scroll width
+                        width: "120px",
+                        textAlign: "right",
+                        padding: "4px 8px",
                       }}
                     >
-                      {/* เลขสมาชิก */}
-                      <div style={{ width: "120px", padding: "4px 8px" }}></div>
-
-                      {/* ชื่อ-สกุล */}
-                      <div style={{ width: "200px", padding: "4px 8px" }}></div>
-
-                      {/* เงินเดือน */}
                       <div
                         style={{
-                          width: "120px",
-                          textAlign: "right",
-                          padding: "4px 8px",
+                          fontSize: "10px",
+                          color: "#999",
+                          marginBottom: "2px",
                         }}
                       >
-                        <div
-                          style={{
-                            fontSize: "10px",
-                            color: "#999",
-                            marginBottom: "2px",
-                          }}
-                        >
-                          เงินเดือน
-                        </div>
-                        <Text strong>
-                          {dept.totals.salary.toLocaleString("th-TH", {
-                            minimumFractionDigits: 2,
-                          })}
-                        </Text>
+                        เหลือรับ
                       </div>
-
-                      {/* เหลือรับ */}
-                      <div
-                        style={{
-                          width: "120px",
-                          textAlign: "right",
-                          padding: "4px 8px",
-                        }}
-                      >
-                        <div
-                          style={{
-                            fontSize: "10px",
-                            color: "#999",
-                            marginBottom: "2px",
-                          }}
-                        >
-                          เหลือรับ
-                        </div>
-                        <Text strong>
-                          {dept.totals.money.toLocaleString("th-TH", {
-                            minimumFractionDigits: 2,
-                          })}
-                        </Text>
-                      </div>
-
-                      {/* เรียกเก็บ */}
-                      <div
-                        style={{
-                          width: "120px",
-                          textAlign: "right",
-                          padding: "4px 8px",
-                        }}
-                      >
-                        <div
-                          style={{
-                            fontSize: "10px",
-                            color: "#999",
-                            marginBottom: "2px",
-                          }}
-                        >
-                          เรียกเก็บ
-                        </div>
-                        <Text strong style={{ color: "#1890ff" }}>
-                          {dept.totals.total1.toLocaleString("th-TH", {
-                            minimumFractionDigits: 2,
-                          })}
-                        </Text>
-                      </div>
-
-                      {/* เงินทำบุญ */}
-                      <div
-                        style={{
-                          width: "120px",
-                          textAlign: "right",
-                          padding: "4px 8px",
-                        }}
-                      >
-                        <div
-                          style={{
-                            fontSize: "10px",
-                            color: "#999",
-                            marginBottom: "2px",
-                          }}
-                        >
-                          เงินทำบุญ
-                        </div>
-                        <Text strong style={{ color: "#fa8c16" }}>
-                          {dept.totals.aidAmount.toLocaleString("th-TH", {
-                            minimumFractionDigits: 0,
-                          })}
-                        </Text>
-                      </div>
-
-                      {/* เก็บได้ */}
-                      <div
-                        style={{
-                          width: "120px",
-                          textAlign: "right",
-                          padding: "4px 8px",
-                        }}
-                      >
-                        <div
-                          style={{
-                            fontSize: "10px",
-                            color: "#999",
-                            marginBottom: "2px",
-                          }}
-                        >
-                          เก็บได้
-                        </div>
-                        <Text strong style={{ color: "#52c41a" }}>
-                          {dept.totals.total2.toLocaleString("th-TH", {
-                            minimumFractionDigits: 2,
-                          })}
-                        </Text>
-                      </div>
-
-                      {/* ผลต่าง */}
-                      <div
-                        style={{
-                          width: "120px",
-                          textAlign: "right",
-                          padding: "4px 8px",
-                        }}
-                      >
-                        <div
-                          style={{
-                            fontSize: "10px",
-                            color: "#999",
-                            marginBottom: "2px",
-                          }}
-                        >
-                          ผลต่าง
-                        </div>
-                        <Text
-                          strong
-                          style={{
-                            color: getDifferenceColor(dept.totals.difference),
-                          }}
-                        >
-                          {formatCurrency(dept.totals.difference).toFixed(2)}
-                        </Text>
-                      </div>
-
-                      {/* หมายเหตุ */}
-                      <div style={{ width: "150px", padding: "4px 8px" }}></div>
-
-                      {/* จัดการ */}
-                      <div style={{ width: "120px", padding: "4px 8px" }}></div>
+                      <Text strong>
+                        {dept.totals.money.toLocaleString("th-TH", {
+                          minimumFractionDigits: 2,
+                        })}
+                      </Text>
                     </div>
+
+                    {/* เรียกเก็บ */}
+                    <div
+                      style={{
+                        width: "120px",
+                        textAlign: "right",
+                        padding: "4px 8px",
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: "10px",
+                          color: "#999",
+                          marginBottom: "2px",
+                        }}
+                      >
+                        เรียกเก็บ
+                      </div>
+                      <Text strong style={{ color: "#1890ff" }}>
+                        {dept.totals.total1.toLocaleString("th-TH", {
+                          minimumFractionDigits: 2,
+                        })}
+                      </Text>
+                    </div>
+
+                    {/* เงินทำบุญ */}
+                    <div
+                      style={{
+                        width: "120px",
+                        textAlign: "right",
+                        padding: "4px 8px",
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: "10px",
+                          color: "#999",
+                          marginBottom: "2px",
+                        }}
+                      >
+                        เงินทำบุญ
+                      </div>
+                      <Text strong style={{ color: "#fa8c16" }}>
+                        {dept.totals.aidAmount.toLocaleString("th-TH", {
+                          minimumFractionDigits: 0,
+                        })}
+                      </Text>
+                    </div>
+
+                    {/* เก็บได้ */}
+                    <div
+                      style={{
+                        width: "120px",
+                        textAlign: "right",
+                        padding: "4px 8px",
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: "10px",
+                          color: "#999",
+                          marginBottom: "2px",
+                        }}
+                      >
+                        เก็บได้
+                      </div>
+                      <Text strong style={{ color: "#52c41a" }}>
+                        {dept.totals.total2.toLocaleString("th-TH", {
+                          minimumFractionDigits: 2,
+                        })}
+                      </Text>
+                    </div>
+
+                    {/* ผลต่าง */}
+                    <div
+                      style={{
+                        width: "120px",
+                        textAlign: "right",
+                        padding: "4px 8px",
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: "10px",
+                          color: "#999",
+                          marginBottom: "2px",
+                        }}
+                      >
+                        ผลต่าง
+                      </div>
+                      <Text
+                        strong
+                        style={{
+                          color: getDifferenceColor(dept.totals.difference),
+                        }}
+                      >
+                        {formatCurrency(dept.totals.difference).toFixed(2)}
+                      </Text>
+                    </div>
+
+                    {/* หมายเหตุ */}
+                    <div style={{ width: "150px", padding: "4px 8px" }}></div>
+
+                    {/* จัดการ */}
+                    <div style={{ width: "120px", padding: "4px 8px" }}></div>
                   </div>
                 </div>
-              }
-              key={dept.dept_code}
-            >
+              </div>
+            ),
+            children: (
               <Collapse
                 size="small"
                 activeKey={sectionExpandedKeys[dept.dept_code] || []}
@@ -1439,565 +1436,401 @@ const DataUpdate = ({ user }) => {
                     [dept.dept_code]: keys,
                   }));
                 }}
-              >
-                {Object.values(dept.sections)
+                items={Object.values(dept.sections)
                   .sort((a, b) => a.sect_code.localeCompare(b.sect_code))
-                  .map((section) => (
-                    <Panel
-                      header={
-                        <div style={{ width: "100%" }}>
-                          {/* แถวหลัก: ชื่อ section + สรุปยอด */}
+                  .map((section) => ({
+                    key: `${dept.dept_code}-${section.sect_code}`,
+                    label: (
+                      <div style={{ width: "100%" }}>
+                        {/* แถวหลัก: ชื่อ section + สรุปยอด */}
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            width: "100%",
+                          }}
+                        >
+                          {/* ชื่อ section */}
                           <div
                             style={{
                               display: "flex",
                               alignItems: "center",
-                              justifyContent: "space-between",
-                              width: "100%",
+                              minWidth: "320px",
                             }}
                           >
-                            {/* ชื่อ section */}
+                            <Text>
+                              {section.sect_code} - {section.sect_name}
+                            </Text>
+                            <Tag color="orange" style={{ marginLeft: "8px" }}>
+                              รวม {section.totals.count} คน
+                            </Tag>
+                          </div>
+
+                          {/* สรุปยอดตาม columns ตาราง (เมื่อปิดอยู่) */}
+                          {!sectionExpandedKeys[dept.dept_code]?.includes(
+                            `${dept.dept_code}-${section.sect_code}`
+                          ) && (
                             <div
                               style={{
                                 display: "flex",
-                                alignItems: "center",
-                                minWidth: "320px",
+                                fontSize: "12px",
+                                overflow: "hidden",
+                                width: "1320px", // ตรงกับ table scroll width
                               }}
                             >
-                              <Text>
-                                {section.sect_code} - {section.sect_name}
-                              </Text>
-                              <Tag color="orange" style={{ marginLeft: "8px" }}>
-                                รวม {section.totals.count} คน
-                              </Tag>
-                            </div>
-
-                            {/* สรุปยอดตาม columns ตาราง (เมื่อปิดอยู่) */}
-                            {!sectionExpandedKeys[dept.dept_code]?.includes(
-                              `${dept.dept_code}-${section.sect_code}`
-                            ) && (
-                              <div
-                                style={{
-                                  display: "flex",
-                                  fontSize: "12px",
-                                  overflow: "hidden",
-                                  width: "1320px", // ตรงกับ table scroll width
-                                }}
-                              >
-                                {/* เลขสมาชิก */}
-                                <div
-                                  style={{ width: "120px", padding: "4px 8px" }}
-                                ></div>
-
-                                {/* ชื่อ-สกุล */}
-                                <div
-                                  style={{ width: "200px", padding: "4px 8px" }}
-                                ></div>
-
-                                {/* เงินเดือน */}
-                                <div
-                                  style={{
-                                    width: "120px",
-                                    textAlign: "right",
-                                    padding: "4px 8px",
-                                  }}
-                                >
-                                  <div
-                                    style={{
-                                      fontSize: "10px",
-                                      color: "#999",
-                                      marginBottom: "2px",
-                                    }}
-                                  >
-                                    เงินเดือน
-                                  </div>
-                                  <Text strong>
-                                    {section.totals.salary.toLocaleString(
-                                      "th-TH",
-                                      { minimumFractionDigits: 2 }
-                                    )}
-                                  </Text>
-                                </div>
-
-                                {/* เหลือรับ */}
-                                <div
-                                  style={{
-                                    width: "120px",
-                                    textAlign: "right",
-                                    padding: "4px 8px",
-                                  }}
-                                >
-                                  <div
-                                    style={{
-                                      fontSize: "10px",
-                                      color: "#999",
-                                      marginBottom: "2px",
-                                    }}
-                                  >
-                                    เหลือรับ
-                                  </div>
-                                  <Text strong>
-                                    {section.totals.money.toLocaleString(
-                                      "th-TH",
-                                      { minimumFractionDigits: 2 }
-                                    )}
-                                  </Text>
-                                </div>
-
-                                {/* เรียกเก็บ */}
-                                <div
-                                  style={{
-                                    width: "120px",
-                                    textAlign: "right",
-                                    padding: "4px 8px",
-                                  }}
-                                >
-                                  <div
-                                    style={{
-                                      fontSize: "10px",
-                                      color: "#999",
-                                      marginBottom: "2px",
-                                    }}
-                                  >
-                                    เรียกเก็บ
-                                  </div>
-                                  <Text strong style={{ color: "#1890ff" }}>
-                                    {section.totals.total1.toLocaleString(
-                                      "th-TH",
-                                      { minimumFractionDigits: 2 }
-                                    )}
-                                  </Text>
-                                </div>
-
-                                {/* เงินทำบุญ */}
-                                <div
-                                  style={{
-                                    width: "120px",
-                                    textAlign: "right",
-                                    padding: "4px 8px",
-                                  }}
-                                >
-                                  <div
-                                    style={{
-                                      fontSize: "10px",
-                                      color: "#999",
-                                      marginBottom: "2px",
-                                    }}
-                                  >
-                                    เงินทำบุญ
-                                  </div>
-                                  <Text strong style={{ color: "#fa8c16" }}>
-                                    {section.totals.aidAmount.toLocaleString(
-                                      "th-TH",
-                                      { minimumFractionDigits: 0 }
-                                    )}
-                                  </Text>
-                                </div>
-
-                                {/* เก็บได้ */}
-                                <div
-                                  style={{
-                                    width: "120px",
-                                    textAlign: "right",
-                                    padding: "4px 8px",
-                                  }}
-                                >
-                                  <div
-                                    style={{
-                                      fontSize: "10px",
-                                      color: "#999",
-                                      marginBottom: "2px",
-                                    }}
-                                  >
-                                    เก็บได้
-                                  </div>
-                                  <Text strong style={{ color: "#52c41a" }}>
-                                    {section.totals.total2.toLocaleString(
-                                      "th-TH",
-                                      { minimumFractionDigits: 2 }
-                                    )}
-                                  </Text>
-                                </div>
-
-                                {/* ผลต่าง */}
-                                <div
-                                  style={{
-                                    width: "120px",
-                                    textAlign: "right",
-                                    padding: "4px 8px",
-                                  }}
-                                >
-                                  <div
-                                    style={{
-                                      fontSize: "10px",
-                                      color: "#999",
-                                      marginBottom: "2px",
-                                    }}
-                                  >
-                                    ผลต่าง
-                                  </div>
-                                  <Text
-                                    strong
-                                    style={{
-                                      color: getDifferenceColor(
-                                        section.totals.difference
-                                      ),
-                                    }}
-                                  >
-                                    {formatCurrency(
-                                      section.totals.difference
-                                    ).toFixed(2)}
-                                  </Text>
-                                </div>
-
-                                {/* หมายเหตุ */}
-                                <div
-                                  style={{ width: "150px", padding: "4px 8px" }}
-                                ></div>
-
-                                {/* จัดการ */}
-                                <div
-                                  style={{ width: "120px", padding: "4px 8px" }}
-                                ></div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      }
-                      key={`${dept.dept_code}-${section.sect_code}`}
-                    >
-                      {/* Search box สำหรับแต่ละ section */}
-                      <div style={{ marginBottom: "16px" }}>
-                        <Input
-                          placeholder="ค้นหาเลขสมาชิก, ชื่อ-สกุล, หรือหมายเหตุ..."
-                          prefix={<SearchOutlined />}
-                          value={
-                            searchTexts[
-                              `${dept.dept_code}-${section.sect_code}`
-                            ] || ""
-                          }
-                          onChange={(e) =>
-                            handleSectionSearch(
-                              `${dept.dept_code}-${section.sect_code}`,
-                              e.target.value
-                            )
-                          }
-                          allowClear
-                          style={{
-                            maxWidth: 400,
-                            marginBottom: 8,
-                          }}
-                        />
-                        {searchTexts[
-                          `${dept.dept_code}-${section.sect_code}`
-                        ] && (
-                          <div
-                            style={{
-                              fontSize: "12px",
-                              color: "#666",
-                              marginLeft: 24,
-                            }}
-                          >
-                            พบ{" "}
-                            {
-                              getFilteredData(
-                                section.members,
-                                `${dept.dept_code}-${section.sect_code}`
-                              ).length
-                            }{" "}
-                            รายการ จากทั้งหมด {section.members.length} รายการ
-                          </div>
-                        )}
-                      </div>
-
-                      <Table
-                        columns={memberColumns}
-                        dataSource={getFilteredData(
-                          section.members,
-                          `${dept.dept_code}-${section.sect_code}`
-                        )}
-                        rowKey="mb_code"
-                        scroll={{ x: 1320 }}
-                        pagination={{
-                          current:
-                            paginationSettings[
-                              `${dept.dept_code}-${section.sect_code}`
-                            ]?.current || 1,
-                          pageSize:
-                            paginationSettings[
-                              `${dept.dept_code}-${section.sect_code}`
-                            ]?.pageSize || 20,
-                          showSizeChanger: true,
-                          showQuickJumper: true,
-                          showTotal: (total, range) =>
-                            `แสดง ${range[0]}-${range[1]} จาก ${total} รายการ${
-                              searchTexts[
-                                `${dept.dept_code}-${section.sect_code}`
-                              ]
-                                ? " (ถูกกรอง)"
-                                : ""
-                            }`,
-                          pageSizeOptions: ["10", "20", "50", "100", "200"],
-                          onChange: (page, pageSize) => {
-                            const key = `${dept.dept_code}-${section.sect_code}`;
-                            setPaginationSettings((prev) => ({
-                              ...prev,
-                              [key]: { current: page, pageSize },
-                            }));
-                          },
-                          onShowSizeChange: (current, size) => {
-                            const key = `${dept.dept_code}-${section.sect_code}`;
-                            setPaginationSettings((prev) => ({
-                              ...prev,
-                              [key]: { current: 1, pageSize: size },
-                            }));
-                          },
-                        }}
-                        size="small"
-                      />
-
-                      {/* Summary แยกออกมาข้างนอก Table - ใช้ table structure ให้ตรงกับ Ant Design */}
-                      <div
-                        style={{
-                          marginTop: "16px",
-                          backgroundColor: "#f0f9ff",
-                          border: "1px solid #bfdbfe",
-                          borderRadius: 8,
-                          boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
-                          overflow: "hidden",
-                        }}
-                      >
-                        <table
-                          style={{
-                            width: "100%",
-                            tableLayout: "fixed",
-                            borderCollapse: "collapse",
-                            fontSize: "14px",
-                          }}
-                        >
-                          <colgroup>
-                            <col style={{ width: "120px" }} />
-                            <col style={{ width: "200px" }} />
-                            <col style={{ width: "120px" }} />
-                            <col style={{ width: "120px" }} />
-                            <col style={{ width: "120px" }} />
-                            <col style={{ width: "120px" }} />
-                            <col style={{ width: "120px" }} />
-                            <col style={{ width: "120px" }} />
-                            <col style={{ width: "150px" }} />
-                            <col style={{ width: "120px" }} />
-                          </colgroup>
-                          <tbody>
-                            <tr>
                               {/* เลขสมาชิก */}
-                              <td
-                                style={{
-                                  padding: "8px 8px",
-                                  textAlign: "center",
-                                  fontWeight: "600",
-                                  color: "#1890ff",
-                                  borderBottom: "none",
-                                }}
-                              >
-                                {(() => {
-                                  const filteredData = getFilteredData(
-                                    section.members,
-                                    `${dept.dept_code}-${section.sect_code}`
-                                  );
-                                  const hasFilter =
-                                    searchTexts[
-                                      `${dept.dept_code}-${section.sect_code}`
-                                    ];
-                                  return hasFilter
-                                    ? `รวม ${filteredData.length}/${section.totals.count} คน`
-                                    : `รวม ${section.totals.count} คน`;
-                                })()}
-                              </td>
+                              <div
+                                style={{ width: "120px", padding: "4px 8px" }}
+                              ></div>
 
                               {/* ชื่อ-สกุล */}
-                              <td
-                                style={{
-                                  padding: "8px 8px",
-                                  borderBottom: "none",
-                                }}
-                              >
-                                {/* ว่างไว้ */}
-                              </td>
+                              <div
+                                style={{ width: "200px", padding: "4px 8px" }}
+                              ></div>
 
                               {/* เงินเดือน */}
-                              <td
+                              <div
                                 style={{
-                                  padding: "8px 8px",
+                                  width: "120px",
                                   textAlign: "right",
-                                  fontWeight: "600",
-                                  borderBottom: "none",
+                                  padding: "4px 8px",
                                 }}
                               >
-                                {(() => {
-                                  const filteredData = getFilteredData(
-                                    section.members,
-                                    `${dept.dept_code}-${section.sect_code}`
-                                  );
-                                  const hasFilter =
-                                    searchTexts[
-                                      `${dept.dept_code}-${section.sect_code}`
-                                    ];
-                                  if (hasFilter) {
-                                    const filteredSummary =
-                                      calculateFilteredSummary(filteredData);
-                                    return filteredSummary.salary.toLocaleString(
-                                      "th-TH",
-                                      { minimumFractionDigits: 2 }
-                                    );
-                                  }
-                                  return section.totals.salary.toLocaleString(
+                                <div
+                                  style={{
+                                    fontSize: "10px",
+                                    color: "#999",
+                                    marginBottom: "2px",
+                                  }}
+                                >
+                                  เงินเดือน
+                                </div>
+                                <Text strong>
+                                  {section.totals.salary.toLocaleString(
                                     "th-TH",
                                     { minimumFractionDigits: 2 }
-                                  );
-                                })()}
-                              </td>
+                                  )}
+                                </Text>
+                              </div>
 
                               {/* เหลือรับ */}
-                              <td
+                              <div
                                 style={{
-                                  padding: "8px 8px",
+                                  width: "120px",
                                   textAlign: "right",
-                                  fontWeight: "600",
-                                  borderBottom: "none",
+                                  padding: "4px 8px",
                                 }}
                               >
-                                {(() => {
-                                  const filteredData = getFilteredData(
-                                    section.members,
-                                    `${dept.dept_code}-${section.sect_code}`
-                                  );
-                                  const hasFilter =
-                                    searchTexts[
-                                      `${dept.dept_code}-${section.sect_code}`
-                                    ];
-                                  if (hasFilter) {
-                                    const filteredSummary =
-                                      calculateFilteredSummary(filteredData);
-                                    return filteredSummary.money.toLocaleString(
-                                      "th-TH",
-                                      { minimumFractionDigits: 2 }
-                                    );
-                                  }
-                                  return section.totals.money.toLocaleString(
+                                <div
+                                  style={{
+                                    fontSize: "10px",
+                                    color: "#999",
+                                    marginBottom: "2px",
+                                  }}
+                                >
+                                  เหลือรับ
+                                </div>
+                                <Text strong>
+                                  {section.totals.money.toLocaleString(
                                     "th-TH",
                                     { minimumFractionDigits: 2 }
-                                  );
-                                })()}
-                              </td>
+                                  )}
+                                </Text>
+                              </div>
 
                               {/* เรียกเก็บ */}
-                              <td
+                              <div
                                 style={{
-                                  padding: "8px 8px",
+                                  width: "120px",
                                   textAlign: "right",
-                                  fontWeight: "600",
-                                  color: "#1890ff",
-                                  borderBottom: "none",
+                                  padding: "4px 8px",
                                 }}
                               >
-                                {(() => {
-                                  const filteredData = getFilteredData(
-                                    section.members,
-                                    `${dept.dept_code}-${section.sect_code}`
-                                  );
-                                  const hasFilter =
-                                    searchTexts[
-                                      `${dept.dept_code}-${section.sect_code}`
-                                    ];
-                                  if (hasFilter) {
-                                    const filteredSummary =
-                                      calculateFilteredSummary(filteredData);
-                                    return filteredSummary.total1.toLocaleString(
-                                      "th-TH",
-                                      { minimumFractionDigits: 2 }
-                                    );
-                                  }
-                                  return section.totals.total1.toLocaleString(
+                                <div
+                                  style={{
+                                    fontSize: "10px",
+                                    color: "#999",
+                                    marginBottom: "2px",
+                                  }}
+                                >
+                                  เรียกเก็บ
+                                </div>
+                                <Text strong style={{ color: "#1890ff" }}>
+                                  {section.totals.total1.toLocaleString(
                                     "th-TH",
                                     { minimumFractionDigits: 2 }
-                                  );
-                                })()}
-                              </td>
+                                  )}
+                                </Text>
+                              </div>
 
                               {/* เงินทำบุญ */}
-                              <td
+                              <div
                                 style={{
-                                  padding: "8px 8px",
+                                  width: "120px",
                                   textAlign: "right",
-                                  fontWeight: "600",
-                                  color: "#fa8c16",
-                                  borderBottom: "none",
+                                  padding: "4px 8px",
                                 }}
                               >
-                                {(() => {
-                                  const filteredData = getFilteredData(
-                                    section.members,
-                                    `${dept.dept_code}-${section.sect_code}`
-                                  );
-                                  const hasFilter =
-                                    searchTexts[
-                                      `${dept.dept_code}-${section.sect_code}`
-                                    ];
-                                  if (hasFilter) {
-                                    const filteredSummary =
-                                      calculateFilteredSummary(filteredData);
-                                    return filteredSummary.aidAmount.toLocaleString(
-                                      "th-TH",
-                                      { minimumFractionDigits: 0 }
-                                    );
-                                  }
-                                  return section.totals.aidAmount.toLocaleString(
+                                <div
+                                  style={{
+                                    fontSize: "10px",
+                                    color: "#999",
+                                    marginBottom: "2px",
+                                  }}
+                                >
+                                  เงินทำบุญ
+                                </div>
+                                <Text strong style={{ color: "#fa8c16" }}>
+                                  {section.totals.aidAmount.toLocaleString(
                                     "th-TH",
                                     { minimumFractionDigits: 0 }
-                                  );
-                                })()}
-                              </td>
+                                  )}
+                                </Text>
+                              </div>
 
                               {/* เก็บได้ */}
-                              <td
+                              <div
                                 style={{
-                                  padding: "8px 8px",
+                                  width: "120px",
                                   textAlign: "right",
-                                  fontWeight: "600",
-                                  color: "#52c41a",
-                                  borderBottom: "none",
+                                  padding: "4px 8px",
                                 }}
                               >
-                                {(() => {
-                                  const filteredData = getFilteredData(
-                                    section.members,
-                                    `${dept.dept_code}-${section.sect_code}`
-                                  );
-                                  const hasFilter =
-                                    searchTexts[
-                                      `${dept.dept_code}-${section.sect_code}`
-                                    ];
-                                  if (hasFilter) {
-                                    const filteredSummary =
-                                      calculateFilteredSummary(filteredData);
-                                    return filteredSummary.total2.toLocaleString(
-                                      "th-TH",
-                                      { minimumFractionDigits: 2 }
-                                    );
-                                  }
-                                  return section.totals.total2.toLocaleString(
+                                <div
+                                  style={{
+                                    fontSize: "10px",
+                                    color: "#999",
+                                    marginBottom: "2px",
+                                  }}
+                                >
+                                  เก็บได้
+                                </div>
+                                <Text strong style={{ color: "#52c41a" }}>
+                                  {section.totals.total2.toLocaleString(
                                     "th-TH",
                                     { minimumFractionDigits: 2 }
-                                  );
-                                })()}
-                              </td>
+                                  )}
+                                </Text>
+                              </div>
 
                               {/* ผลต่าง */}
-                              <td
+                              <div
                                 style={{
-                                  padding: "8px 8px",
+                                  width: "120px",
                                   textAlign: "right",
-                                  fontWeight: "600",
-                                  color: (() => {
+                                  padding: "4px 8px",
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    fontSize: "10px",
+                                    color: "#999",
+                                    marginBottom: "2px",
+                                  }}
+                                >
+                                  ผลต่าง
+                                </div>
+                                <Text
+                                  strong
+                                  style={{
+                                    color: getDifferenceColor(
+                                      section.totals.difference
+                                    ),
+                                  }}
+                                >
+                                  {formatCurrency(
+                                    section.totals.difference
+                                  ).toFixed(2)}
+                                </Text>
+                              </div>
+
+                              {/* หมายเหตุ */}
+                              <div
+                                style={{ width: "150px", padding: "4px 8px" }}
+                              ></div>
+
+                              {/* จัดการ */}
+                              <div
+                                style={{ width: "120px", padding: "4px 8px" }}
+                              ></div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ),
+                    children: (
+                      <div>
+                        {/* Search box สำหรับแต่ละ section */}
+                        <div style={{ marginBottom: "16px" }}>
+                          <Input
+                            placeholder="ค้นหาเลขสมาชิก, ชื่อ-สกุล, หรือหมายเหตุ..."
+                            prefix={<SearchOutlined />}
+                            value={
+                              searchTexts[
+                                `${dept.dept_code}-${section.sect_code}`
+                              ] || ""
+                            }
+                            onChange={(e) =>
+                              handleSectionSearch(
+                                `${dept.dept_code}-${section.sect_code}`,
+                                e.target.value
+                              )
+                            }
+                            allowClear
+                            style={{
+                              maxWidth: 400,
+                              marginBottom: 8,
+                            }}
+                          />
+                          {searchTexts[
+                            `${dept.dept_code}-${section.sect_code}`
+                          ] && (
+                            <div
+                              style={{
+                                fontSize: "12px",
+                                color: "#666",
+                                marginLeft: 24,
+                              }}
+                            >
+                              พบ{" "}
+                              {
+                                getFilteredData(
+                                  section.members,
+                                  `${dept.dept_code}-${section.sect_code}`
+                                ).length
+                              }{" "}
+                              รายการ จากทั้งหมด {section.members.length} รายการ
+                            </div>
+                          )}
+                        </div>
+
+                        <Table
+                          columns={memberColumns}
+                          dataSource={getFilteredData(
+                            section.members,
+                            `${dept.dept_code}-${section.sect_code}`
+                          )}
+                          rowKey="mb_code"
+                          scroll={{ x: 1320 }}
+                          pagination={{
+                            current:
+                              paginationSettings[
+                                `${dept.dept_code}-${section.sect_code}`
+                              ]?.current || 1,
+                            pageSize:
+                              paginationSettings[
+                                `${dept.dept_code}-${section.sect_code}`
+                              ]?.pageSize || 20,
+                            showSizeChanger: true,
+                            showQuickJumper: true,
+                            showTotal: (total, range) =>
+                              `แสดง ${range[0]}-${
+                                range[1]
+                              } จาก ${total} รายการ${
+                                searchTexts[
+                                  `${dept.dept_code}-${section.sect_code}`
+                                ]
+                                  ? " (ถูกกรอง)"
+                                  : ""
+                              }`,
+                            pageSizeOptions: ["10", "20", "50", "100", "200"],
+                            onChange: (page, pageSize) => {
+                              const key = `${dept.dept_code}-${section.sect_code}`;
+                              setPaginationSettings((prev) => ({
+                                ...prev,
+                                [key]: { current: page, pageSize },
+                              }));
+                            },
+                            onShowSizeChange: (current, size) => {
+                              const key = `${dept.dept_code}-${section.sect_code}`;
+                              setPaginationSettings((prev) => ({
+                                ...prev,
+                                [key]: { current: 1, pageSize: size },
+                              }));
+                            },
+                          }}
+                          size="small"
+                        />
+
+                        {/* Summary แยกออกมาข้างนอก Table - ใช้ table structure ให้ตรงกับ Ant Design */}
+                        <div
+                          style={{
+                            marginTop: "16px",
+                            backgroundColor: "#f0f9ff",
+                            border: "1px solid #bfdbfe",
+                            borderRadius: 8,
+                            boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
+                            overflow: "hidden",
+                          }}
+                        >
+                          <table
+                            style={{
+                              width: "100%",
+                              tableLayout: "fixed",
+                              borderCollapse: "collapse",
+                              fontSize: "14px",
+                            }}
+                          >
+                            <colgroup>
+                              <col style={{ width: "120px" }} />
+                              <col style={{ width: "200px" }} />
+                              <col style={{ width: "120px" }} />
+                              <col style={{ width: "120px" }} />
+                              <col style={{ width: "120px" }} />
+                              <col style={{ width: "120px" }} />
+                              <col style={{ width: "120px" }} />
+                              <col style={{ width: "120px" }} />
+                              <col style={{ width: "150px" }} />
+                              <col style={{ width: "120px" }} />
+                            </colgroup>
+                            <tbody>
+                              <tr>
+                                {/* เลขสมาชิก */}
+                                <td
+                                  style={{
+                                    padding: "8px 8px",
+                                    textAlign: "center",
+                                    fontWeight: "600",
+                                    color: "#1890ff",
+                                    borderBottom: "none",
+                                  }}
+                                >
+                                  {(() => {
+                                    const filteredData = getFilteredData(
+                                      section.members,
+                                      `${dept.dept_code}-${section.sect_code}`
+                                    );
+                                    const hasFilter =
+                                      searchTexts[
+                                        `${dept.dept_code}-${section.sect_code}`
+                                      ];
+                                    return hasFilter
+                                      ? `รวม ${filteredData.length}/${section.totals.count} คน`
+                                      : `รวม ${section.totals.count} คน`;
+                                  })()}
+                                </td>
+
+                                {/* ชื่อ-สกุล */}
+                                <td
+                                  style={{
+                                    padding: "8px 8px",
+                                    borderBottom: "none",
+                                  }}
+                                >
+                                  {/* ว่างไว้ */}
+                                </td>
+
+                                {/* เงินเดือน */}
+                                <td
+                                  style={{
+                                    padding: "8px 8px",
+                                    textAlign: "right",
+                                    fontWeight: "600",
+                                    borderBottom: "none",
+                                  }}
+                                >
+                                  {(() => {
                                     const filteredData = getFilteredData(
                                       section.members,
                                       `${dept.dept_code}-${section.sect_code}`
@@ -2009,70 +1842,238 @@ const DataUpdate = ({ user }) => {
                                     if (hasFilter) {
                                       const filteredSummary =
                                         calculateFilteredSummary(filteredData);
-                                      return getDifferenceColor(
-                                        formatCurrency(
-                                          filteredSummary.difference
-                                        )
+                                      return filteredSummary.salary.toLocaleString(
+                                        "th-TH",
+                                        { minimumFractionDigits: 2 }
                                       );
                                     }
-                                    return getDifferenceColor(
-                                      section.totals.difference
+                                    return section.totals.salary.toLocaleString(
+                                      "th-TH",
+                                      { minimumFractionDigits: 2 }
                                     );
-                                  })(),
-                                  borderBottom: "none",
-                                }}
-                              >
-                                {(() => {
-                                  const filteredData = getFilteredData(
-                                    section.members,
-                                    `${dept.dept_code}-${section.sect_code}`
-                                  );
-                                  const hasFilter =
-                                    searchTexts[
+                                  })()}
+                                </td>
+
+                                {/* เหลือรับ */}
+                                <td
+                                  style={{
+                                    padding: "8px 8px",
+                                    textAlign: "right",
+                                    fontWeight: "600",
+                                    borderBottom: "none",
+                                  }}
+                                >
+                                  {(() => {
+                                    const filteredData = getFilteredData(
+                                      section.members,
                                       `${dept.dept_code}-${section.sect_code}`
-                                    ];
-                                  if (hasFilter) {
-                                    const filteredSummary =
-                                      calculateFilteredSummary(filteredData);
+                                    );
+                                    const hasFilter =
+                                      searchTexts[
+                                        `${dept.dept_code}-${section.sect_code}`
+                                      ];
+                                    if (hasFilter) {
+                                      const filteredSummary =
+                                        calculateFilteredSummary(filteredData);
+                                      return filteredSummary.money.toLocaleString(
+                                        "th-TH",
+                                        { minimumFractionDigits: 2 }
+                                      );
+                                    }
+                                    return section.totals.money.toLocaleString(
+                                      "th-TH",
+                                      { minimumFractionDigits: 2 }
+                                    );
+                                  })()}
+                                </td>
+
+                                {/* เรียกเก็บ */}
+                                <td
+                                  style={{
+                                    padding: "8px 8px",
+                                    textAlign: "right",
+                                    fontWeight: "600",
+                                    color: "#1890ff",
+                                    borderBottom: "none",
+                                  }}
+                                >
+                                  {(() => {
+                                    const filteredData = getFilteredData(
+                                      section.members,
+                                      `${dept.dept_code}-${section.sect_code}`
+                                    );
+                                    const hasFilter =
+                                      searchTexts[
+                                        `${dept.dept_code}-${section.sect_code}`
+                                      ];
+                                    if (hasFilter) {
+                                      const filteredSummary =
+                                        calculateFilteredSummary(filteredData);
+                                      return filteredSummary.total1.toLocaleString(
+                                        "th-TH",
+                                        { minimumFractionDigits: 2 }
+                                      );
+                                    }
+                                    return section.totals.total1.toLocaleString(
+                                      "th-TH",
+                                      { minimumFractionDigits: 2 }
+                                    );
+                                  })()}
+                                </td>
+
+                                {/* เงินทำบุญ */}
+                                <td
+                                  style={{
+                                    padding: "8px 8px",
+                                    textAlign: "right",
+                                    fontWeight: "600",
+                                    color: "#fa8c16",
+                                    borderBottom: "none",
+                                  }}
+                                >
+                                  {(() => {
+                                    const filteredData = getFilteredData(
+                                      section.members,
+                                      `${dept.dept_code}-${section.sect_code}`
+                                    );
+                                    const hasFilter =
+                                      searchTexts[
+                                        `${dept.dept_code}-${section.sect_code}`
+                                      ];
+                                    if (hasFilter) {
+                                      const filteredSummary =
+                                        calculateFilteredSummary(filteredData);
+                                      return filteredSummary.aidAmount.toLocaleString(
+                                        "th-TH",
+                                        { minimumFractionDigits: 0 }
+                                      );
+                                    }
+                                    return section.totals.aidAmount.toLocaleString(
+                                      "th-TH",
+                                      { minimumFractionDigits: 0 }
+                                    );
+                                  })()}
+                                </td>
+
+                                {/* เก็บได้ */}
+                                <td
+                                  style={{
+                                    padding: "8px 8px",
+                                    textAlign: "right",
+                                    fontWeight: "600",
+                                    color: "#52c41a",
+                                    borderBottom: "none",
+                                  }}
+                                >
+                                  {(() => {
+                                    const filteredData = getFilteredData(
+                                      section.members,
+                                      `${dept.dept_code}-${section.sect_code}`
+                                    );
+                                    const hasFilter =
+                                      searchTexts[
+                                        `${dept.dept_code}-${section.sect_code}`
+                                      ];
+                                    if (hasFilter) {
+                                      const filteredSummary =
+                                        calculateFilteredSummary(filteredData);
+                                      return filteredSummary.total2.toLocaleString(
+                                        "th-TH",
+                                        { minimumFractionDigits: 2 }
+                                      );
+                                    }
+                                    return section.totals.total2.toLocaleString(
+                                      "th-TH",
+                                      { minimumFractionDigits: 2 }
+                                    );
+                                  })()}
+                                </td>
+
+                                {/* ผลต่าง */}
+                                <td
+                                  style={{
+                                    padding: "8px 8px",
+                                    textAlign: "right",
+                                    fontWeight: "600",
+                                    color: (() => {
+                                      const filteredData = getFilteredData(
+                                        section.members,
+                                        `${dept.dept_code}-${section.sect_code}`
+                                      );
+                                      const hasFilter =
+                                        searchTexts[
+                                          `${dept.dept_code}-${section.sect_code}`
+                                        ];
+                                      if (hasFilter) {
+                                        const filteredSummary =
+                                          calculateFilteredSummary(
+                                            filteredData
+                                          );
+                                        return getDifferenceColor(
+                                          formatCurrency(
+                                            filteredSummary.difference
+                                          )
+                                        );
+                                      }
+                                      return getDifferenceColor(
+                                        section.totals.difference
+                                      );
+                                    })(),
+                                    borderBottom: "none",
+                                  }}
+                                >
+                                  {(() => {
+                                    const filteredData = getFilteredData(
+                                      section.members,
+                                      `${dept.dept_code}-${section.sect_code}`
+                                    );
+                                    const hasFilter =
+                                      searchTexts[
+                                        `${dept.dept_code}-${section.sect_code}`
+                                      ];
+                                    if (hasFilter) {
+                                      const filteredSummary =
+                                        calculateFilteredSummary(filteredData);
+                                      return formatCurrency(
+                                        filteredSummary.difference
+                                      ).toFixed(2);
+                                    }
                                     return formatCurrency(
-                                      filteredSummary.difference
+                                      section.totals.difference
                                     ).toFixed(2);
-                                  }
-                                  return formatCurrency(
-                                    section.totals.difference
-                                  ).toFixed(2);
-                                })()}
-                              </td>
+                                  })()}
+                                </td>
 
-                              {/* หมายเหตุ */}
-                              <td
-                                style={{
-                                  padding: "8px 8px",
-                                  borderBottom: "none",
-                                }}
-                              >
-                                {/* ว่างไว้ */}
-                              </td>
+                                {/* หมายเหตุ */}
+                                <td
+                                  style={{
+                                    padding: "8px 8px",
+                                    borderBottom: "none",
+                                  }}
+                                >
+                                  {/* ว่างไว้ */}
+                                </td>
 
-                              {/* จัดการ */}
-                              <td
-                                style={{
-                                  padding: "8px 8px",
-                                  borderBottom: "none",
-                                }}
-                              >
-                                {/* ว่างไว้ */}
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
+                                {/* จัดการ */}
+                                <td
+                                  style={{
+                                    padding: "8px 8px",
+                                    borderBottom: "none",
+                                  }}
+                                >
+                                  {/* ว่างไว้ */}
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
                       </div>
-                    </Panel>
-                  ))}
-              </Collapse>
-            </Panel>
-          ))}
-      </Collapse>
+                    ),
+                  }))}
+              />
+            ),
+          }))}
+      />
     </div>
   );
 };

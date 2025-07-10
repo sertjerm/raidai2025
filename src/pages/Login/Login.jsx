@@ -55,8 +55,10 @@ const Login = ({ onLogin }) => {
         onLogin(userData);
       } else {
         // ใช้ responseMessage จาก API หรือ fallback เป็นข้อความเริ่มต้น
-        const errorMessage = response.data?.responseMessage || "รหัสผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง";
-        
+        const errorMessage =
+          response.data?.responseMessage ||
+          "รหัสผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง";
+
         await Swal.fire({
           icon: "error",
           title: "เข้าสู่ระบบไม่สำเร็จ",
@@ -104,100 +106,356 @@ const Login = ({ onLogin }) => {
       style={{
         minHeight: "100vh",
         display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background:
-          "linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 50%, #cce7ff 100%)",
-        padding: "24px",
+        position: "relative",
+        overflow: "hidden",
+        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
       }}
     >
-      <Card
+      {/* Animated Background Elements */}
+      <div
         style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
           width: "100%",
-          maxWidth: "450px",
-          borderRadius: "20px",
-          boxShadow: "0 8px 32px rgba(74, 144, 226, 0.25)",
-          border: "1px solid #e6f3ff",
-          background: "linear-gradient(135deg, #ffffff 0%, #f0f8ff 100%)",
+          height: "100%",
+          background: `
+            radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+            radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
+            radial-gradient(circle at 40% 40%, rgba(74, 144, 226, 0.2) 0%, transparent 50%)
+          `,
+          animation: "float 6s ease-in-out infinite",
+        }}
+      />
+
+      {/* Floating Particles */}
+      {[...Array(6)].map((_, i) => (
+        <div
+          key={i}
+          style={{
+            position: "absolute",
+            width: `${Math.random() * 20 + 10}px`,
+            height: `${Math.random() * 20 + 10}px`,
+            background: "rgba(255, 255, 255, 0.1)",
+            borderRadius: "50%",
+            top: `${Math.random() * 100}%`,
+            left: `${Math.random() * 100}%`,
+            animation: `float ${3 + Math.random() * 4}s ease-in-out infinite`,
+            animationDelay: `${Math.random() * 2}s`,
+          }}
+        />
+      ))}
+
+      {/* Left Side - Hero Section */}
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          padding: "0 60px",
+          color: "white",
+          textAlign: "center",
+          zIndex: 2,
         }}
       >
-        <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-          {/* <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>🏛️</div> */}
-          <Title
-            level={2}
-            style={{
-              color: "#1a365d",
-              background: "linear-gradient(45deg, #2c5aa0, #4a90e2)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-              marginBottom: 0,
-            }}
-          >
-            {APP_CONFIG.headerTitle}
-          </Title>
-        </div>
-
-        <Form
-          name="login"
-          onFinish={handleSubmit}
-          autoComplete="off"
-          size="large"
-          initialValues={{ username: "021000" }}
-        >
-          <Form.Item
-            name="username"
-            rules={[{ required: true, message: "กรุณากรอกรหัสผู้ใช้งาน!" }]}
-          >
-            <Input prefix={<UserOutlined />} placeholder="รหัสผู้ใช้งาน" />
-          </Form.Item>
-
-          <Form.Item
-            name="password"
-            rules={[{ required: true, message: "กรุณากรอกรหัสผ่าน!" }]}
-          >
-            <Input.Password prefix={<LockOutlined />} placeholder="รหัสผ่าน" />
-          </Form.Item>
-
-          <Form.Item>
-            <Button
-              type="primary"
-              htmlType="submit"
-              loading={loading}
-              block
-              style={{
-                height: "48px",
-                fontWeight: 600,
-                fontSize: "16px",
-              }}
-            >
-              ลงชื่อเข้าใช้
-            </Button>
-          </Form.Item>
-        </Form>
-
-        {/* Build Information */}
         <div
           style={{
-            textAlign: "center",
-            marginTop: "1.5rem",
-            paddingTop: "1rem",
-            borderTop: "1px solid #e6f3ff",
-            fontSize: "12px",
-            color: "#999",
+            fontSize: "4rem",
+            marginBottom: "1rem",
+            animation: "fadeInUp 1s ease-out",
           }}
         >
-          <div>เวอร์ชัน 1.0.0</div>
-          <div>
-            อัปเดตล่าสุด:{" "}
-            {new Date().toLocaleDateString("th-TH", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}
+          🏛️
+        </div>
+        <Title
+          level={1}
+          style={{
+            color: "white",
+            fontSize: "3.5rem",
+            fontWeight: 700,
+            marginBottom: "1rem",
+            textShadow: "0 4px 8px rgba(0,0,0,0.3)",
+            animation: "fadeInUp 1s ease-out 0.2s both",
+          }}
+        >
+          {APP_CONFIG.headerTitle}
+        </Title>
+        <Title
+          level={3}
+          style={{
+            color: "rgba(255, 255, 255, 0.9)",
+            fontWeight: 300,
+            marginBottom: "2rem",
+            lineHeight: 1.6,
+            animation: "fadeInUp 1s ease-out 0.4s both",
+          }}
+        >
+          ระบบจัดการข้อมูลบุคลากรที่ทันสมัย
+          <br />
+          เพื่อประสิทธิภาพการทำงานที่ดีกว่า
+        </Title>
+        <div
+          style={{
+            display: "flex",
+            gap: "2rem",
+            animation: "fadeInUp 1s ease-out 0.6s both",
+          }}
+        >
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>📊</div>
+            <div style={{ fontSize: "0.9rem", opacity: 0.9 }}>
+              รายงานแบบ Real-time
+            </div>
+          </div>
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>🔒</div>
+            <div style={{ fontSize: "0.9rem", opacity: 0.9 }}>
+              ความปลอดภัยสูง
+            </div>
+          </div>
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>⚡</div>
+            <div style={{ fontSize: "0.9rem", opacity: 0.9 }}>ประมวลผลเร็ว</div>
           </div>
         </div>
-      </Card>
+      </div>
+
+      {/* Right Side - Login Form */}
+      <div
+        style={{
+          flex: "0 0 500px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "60px 40px",
+          zIndex: 2,
+        }}
+      >
+        <Card
+          style={{
+            width: "100%",
+            maxWidth: "420px",
+            borderRadius: "24px",
+            boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+            border: "none",
+            background: "rgba(255, 255, 255, 0.95)",
+            backdropFilter: "blur(20px)",
+            animation: "slideInRight 1s ease-out",
+          }}
+        >
+          <div style={{ textAlign: "center", marginBottom: "2.5rem" }}>
+            <div
+              style={{
+                width: "80px",
+                height: "80px",
+                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                borderRadius: "20px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                margin: "0 auto 1.5rem",
+                fontSize: "2rem",
+                boxShadow: "0 8px 16px rgba(102, 126, 234, 0.4)",
+              }}
+            >
+              🚀
+            </div>
+            <Title
+              level={2}
+              style={{
+                color: "#1a365d",
+                background: "linear-gradient(45deg, #667eea, #764ba2)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+                marginBottom: "0.5rem",
+                fontWeight: 600,
+              }}
+            >
+              เข้าสู่ระบบ
+            </Title>
+            <p
+              style={{
+                color: "#64748b",
+                margin: 0,
+                fontSize: "14px",
+              }}
+            >
+              ยินดีต้อนรับเข้าสู่ระบบจัดการข้อมูล
+            </p>
+          </div>
+
+          <Form
+            name="login"
+            onFinish={handleSubmit}
+            autoComplete="off"
+            size="large"
+            initialValues={{ username: "021000" }}
+          >
+            <Form.Item
+              name="username"
+              rules={[{ required: true, message: "กรุณากรอกรหัสผู้ใช้งาน!" }]}
+            >
+              <Input
+                prefix={<UserOutlined style={{ color: "#667eea" }} />}
+                placeholder="รหัสผู้ใช้งาน"
+                style={{
+                  borderRadius: "12px",
+                  border: "2px solid #e2e8f0",
+                  padding: "12px 16px",
+                  fontSize: "16px",
+                  transition: "all 0.3s ease",
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = "#667eea";
+                  e.target.style.boxShadow =
+                    "0 0 0 3px rgba(102, 126, 234, 0.1)";
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = "#e2e8f0";
+                  e.target.style.boxShadow = "none";
+                }}
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="password"
+              rules={[{ required: true, message: "กรุณากรอกรหัสผ่าน!" }]}
+            >
+              <Input.Password
+                prefix={<LockOutlined style={{ color: "#667eea" }} />}
+                placeholder="รหัสผ่าน"
+                style={{
+                  borderRadius: "12px",
+                  border: "2px solid #e2e8f0",
+                  padding: "12px 16px",
+                  fontSize: "16px",
+                  transition: "all 0.3s ease",
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = "#667eea";
+                  e.target.style.boxShadow =
+                    "0 0 0 3px rgba(102, 126, 234, 0.1)";
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = "#e2e8f0";
+                  e.target.style.boxShadow = "none";
+                }}
+              />
+            </Form.Item>
+
+            <Form.Item>
+              <Button
+                type="primary"
+                htmlType="submit"
+                loading={loading}
+                block
+                style={{
+                  height: "56px",
+                  fontWeight: 600,
+                  fontSize: "16px",
+                  borderRadius: "12px",
+                  background:
+                    "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                  border: "none",
+                  boxShadow: "0 8px 16px rgba(102, 126, 234, 0.4)",
+                  transition: "all 0.3s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = "translateY(-2px)";
+                  e.target.style.boxShadow =
+                    "0 12px 24px rgba(102, 126, 234, 0.5)";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = "translateY(0)";
+                  e.target.style.boxShadow =
+                    "0 8px 16px rgba(102, 126, 234, 0.4)";
+                }}
+              >
+                {loading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
+              </Button>
+            </Form.Item>
+          </Form>
+
+          {/* Build Information */}
+          <div
+            style={{
+              textAlign: "center",
+              marginTop: "2rem",
+              paddingTop: "1.5rem",
+              borderTop: "1px solid #e2e8f0",
+              fontSize: "12px",
+              color: "#64748b",
+            }}
+          >
+            <div style={{ marginBottom: "4px", fontWeight: 500 }}>
+              เวอร์ชัน 1.0.0
+            </div>
+            <div>
+              อัปเดตล่าสุด:{" "}
+              {new Date().toLocaleDateString("th-TH", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      {/* Responsive Design */}
+      <style jsx>{`
+        @keyframes float {
+          0%,
+          100% {
+            transform: translateY(0px);
+          }
+          50% {
+            transform: translateY(-20px);
+          }
+        }
+
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes slideInRight {
+          from {
+            opacity: 0;
+            transform: translateX(50px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+
+        @media (max-width: 1024px) {
+          .hero-section {
+            display: none;
+          }
+          .login-section {
+            flex: 1;
+            padding: 40px 20px;
+          }
+        }
+
+        @media (max-width: 768px) {
+          .login-card {
+            margin: 20px;
+            border-radius: 16px;
+          }
+        }
+      `}</style>
     </div>
   );
 };
