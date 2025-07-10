@@ -27,11 +27,13 @@ import {
   SaveOutlined,
   CloseOutlined,
   SearchOutlined,
+  InfoCircleOutlined,
+  SettingOutlined,
 } from "@ant-design/icons";
 import { getApiUrl } from "@config/api";
 import axios from "axios";
 
-// CSS สำหรับ tooltip
+// CSS สำหรับ tooltip และ table row styling
 const tooltipStyles = `
   .custom-note-tooltip {
     z-index: 9999 !important;
@@ -77,6 +79,21 @@ const tooltipStyles = `
   
   .ant-table-body {
     overflow: hidden !important;
+  }
+
+  /* สีพื้นหลังสลับกันสำหรับแถว */
+  .table-row-light td {
+    background-color: #f8f9fa !important;
+  }
+  
+  .table-row-dark td {
+    background-color: #ffffff !important;
+  }
+  
+  .table-row-light:hover td,
+  .table-row-dark:hover td {
+    background-color: #e6f7ff !important;
+  }
   }
   
   .ant-table {
@@ -132,7 +149,7 @@ const DataUpdate = ({ user }) => {
     const numValue = parseFloat(value) || 0;
 
     if (numValue === 0 || Math.abs(numValue) < 0.01) {
-      return "#666666"; // สีดำอ่อน (เทาเข้ม) สำหรับ 0
+      return "#bbb"; // สีเทาจาง สำหรับ 0
     }
     if (numValue < 0) {
       return "#ff4d4f"; // แดง (ลบ)
@@ -390,10 +407,21 @@ const DataUpdate = ({ user }) => {
   // Columns for member table
   const memberColumns = [
     {
+      title: "ลำดับ",
+      key: "index",
+      width: "6%",
+      align: "center",
+      render: (_, record, index) => (
+        <Text strong style={{ color: "#666" }}>
+          {index + 1}
+        </Text>
+      ),
+    },
+    {
       title: "เลขสมาชิก",
       dataIndex: "mb_code",
       key: "mb_code",
-      width: "10%",
+      width: "9%",
       align: "center",
       render: (text) => <Text strong>{text}</Text>,
     },
@@ -401,13 +429,32 @@ const DataUpdate = ({ user }) => {
       title: "ชื่อ-สกุล",
       dataIndex: "fullname",
       key: "fullname",
-      width: "20%",
+      width: "15%",
+      render: (text) => (
+        <Tooltip
+          title={text}
+          placement="topLeft"
+          mouseEnterDelay={0.5}
+          trigger={text && text.length > 20 ? ["hover", "focus"] : []}
+        >
+          <Text
+            style={{
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              display: "block",
+            }}
+          >
+            {text}
+          </Text>
+        </Tooltip>
+      ),
     },
     {
       title: "เงินเดือน",
       dataIndex: "mb_salary",
       key: "mb_salary",
-      width: "12%",
+      width: "11%",
       align: "right",
       render: (value, record) => {
         const rowKey = record.mb_code;
@@ -443,7 +490,7 @@ const DataUpdate = ({ user }) => {
       title: "เหลือรับ",
       dataIndex: "mb_money", // แก้ไขเป็น mb_money
       key: "remaining",
-      width: "12%",
+      width: "11%",
       align: "right",
       render: (value, record) => {
         const rowKey = record.mb_code;
@@ -479,7 +526,7 @@ const DataUpdate = ({ user }) => {
       title: "เรียกเก็บ",
       dataIndex: "TOTAL1", // แก้ไขเป็น TOTAL1
       key: "collect",
-      width: "12%",
+      width: "11%",
       align: "right",
       render: (value, record) => {
         const rowKey = record.mb_code;
@@ -525,7 +572,7 @@ const DataUpdate = ({ user }) => {
       title: "เก็บได้",
       dataIndex: "TOTAL2", // แก้ไขเป็น TOTAL2
       key: "collected",
-      width: "12%",
+      width: "11%",
       align: "right",
       render: (value, record) => {
         const rowKey = record.mb_code;
@@ -568,7 +615,7 @@ const DataUpdate = ({ user }) => {
       title: "ผลต่าง",
       dataIndex: "difference",
       key: "difference",
-      width: "10%",
+      width: "9%",
       align: "right",
       render: (value, record) => {
         const rowKey = record.mb_code;
@@ -597,14 +644,19 @@ const DataUpdate = ({ user }) => {
         }
 
         const formatted = formatCurrency(calculatedDifference);
+        const isZero = Math.abs(calculatedDifference) < 0.01;
+
         return (
           <Text
             style={{
               color: getDifferenceColor(calculatedDifference),
-              fontWeight: "600",
+              fontWeight: isZero ? "normal" : "600",
             }}
           >
-            {formatted.toFixed(2)}
+            {calculatedDifference < 0 ? "-" : ""}
+            {Math.abs(calculatedDifference).toLocaleString("th-TH", {
+              minimumFractionDigits: 2,
+            })}
           </Text>
         );
       },
@@ -613,36 +665,32 @@ const DataUpdate = ({ user }) => {
       title: "หมายเหตุ",
       dataIndex: "NOTE", // แก้ไขเป็น NOTE
       key: "NOTE",
-      width: "15%",
+      width: "8%",
+      align: "center",
       render: (note, record) => {
         const rowKey = record.mb_code;
         const isEditing = editingRows[rowKey];
 
         if (isEditing) {
           return (
-            <Input
-              value={editingData[rowKey]?.NOTE}
+            <Input.TextArea
+              value={editingData[rowKey]?.NOTE || ""}
               onChange={(e) =>
                 updateEditingData(rowKey, "NOTE", e.target.value)
               }
               placeholder="หมายเหตุ"
+              autoSize={{ minRows: 1, maxRows: 3 }}
+              style={{ fontSize: "13px" }}
             />
           );
         }
 
-        // ถ้าไม่มีหมายเหตุหรือว่าง
+        // ถ้าไม่มีหมายเหตุหรือว่าง ไม่แสดงอะไรเลย
         if (!note || note.trim() === "") {
-          return <span style={{ color: "#999", fontStyle: "italic" }}>-</span>;
+          return null;
         }
 
-        // ถ้าข้อความสั้นกว่า 15 ตัวอักษร แสดงตรงๆ
-        if (note.length <= 15) {
-          return (
-            <span style={{ color: "#333", fontSize: "13px" }}>{note}</span>
-          );
-        }
-
-        // ถ้าข้อความยาว ให้ตัดและแสดง tooltip
+        // ถ้ามีหมายเหตุ แสดงเป็น icon พร้อม tooltip
         return (
           <Tooltip
             title={
@@ -658,31 +706,21 @@ const DataUpdate = ({ user }) => {
             destroyTooltipOnHide={true}
             fresh={true}
           >
-            <div
+            <InfoCircleOutlined
               style={{
-                cursor: "help",
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                width: "100%",
                 color: "#1890ff",
-                borderBottom: "1px dotted #1890ff",
-                lineHeight: "1.4",
-                padding: "2px 0",
-                fontSize: "13px",
-                display: "block",
+                fontSize: "16px",
+                cursor: "help",
               }}
-            >
-              {note.substring(0, 12)}...
-            </div>
+            />
           </Tooltip>
         );
       },
     },
     {
-      title: "จัดการ",
+      title: <SettingOutlined style={{ fontSize: "16px", color: "#666" }} />,
       key: "action",
-      width: "9%",
+      width: "5%",
       align: "center",
       render: (_, record) => {
         const rowKey = record.mb_code;
@@ -1324,12 +1362,14 @@ const DataUpdate = ({ user }) => {
             >
               <Statistic
                 title="ผลต่างรวม"
-                value={formatCurrency(grandTotals.difference)}
+                value={Math.abs(formatCurrency(grandTotals.difference))}
                 precision={2}
+                prefix={grandTotals.difference < 0 ? "-" : ""}
                 valueStyle={{
                   color: getDifferenceColor(grandTotals.difference),
                   fontSize: "20px",
-                  fontWeight: "bold",
+                  fontWeight:
+                    Math.abs(grandTotals.difference) < 0.01 ? "normal" : "bold",
                 }}
                 suffix="บาท"
               />
@@ -1371,12 +1411,25 @@ const DataUpdate = ({ user }) => {
                       display: "flex",
                       alignItems: "center",
                       minWidth: "320px",
+                      maxWidth: "320px",
                     }}
                   >
-                    <Text strong>
+                    <Text
+                      strong
+                      style={{
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        maxWidth: "240px",
+                      }}
+                      title={`${dept.dept_code} - ${dept.dept_name}`}
+                    >
                       {dept.dept_code} - {dept.dept_name}
                     </Text>
-                    <Tag color="blue" style={{ marginLeft: "8px" }}>
+                    <Tag
+                      color="blue"
+                      style={{ marginLeft: "8px", flexShrink: 0 }}
+                    >
                       {dept.totals.count} คน
                     </Tag>
                   </div>
@@ -1390,16 +1443,19 @@ const DataUpdate = ({ user }) => {
                       width: "1320px", // ตรงกับ table scroll width
                     }}
                   >
+                    {/* ลำดับ */}
+                    <div style={{ width: "80px", padding: "4px 8px" }}></div>
+
                     {/* เลขสมาชิก */}
-                    <div style={{ width: "120px", padding: "4px 8px" }}></div>
+                    <div style={{ width: "110px", padding: "4px 8px" }}></div>
 
                     {/* ชื่อ-สกุล */}
-                    <div style={{ width: "200px", padding: "4px 8px" }}></div>
+                    <div style={{ width: "180px", padding: "4px 8px" }}></div>
 
                     {/* เงินเดือน */}
                     <div
                       style={{
-                        width: "120px",
+                        width: "110px",
                         textAlign: "right",
                         padding: "4px 8px",
                       }}
@@ -1423,7 +1479,7 @@ const DataUpdate = ({ user }) => {
                     {/* เหลือรับ */}
                     <div
                       style={{
-                        width: "120px",
+                        width: "110px",
                         textAlign: "right",
                         padding: "4px 8px",
                       }}
@@ -1447,7 +1503,7 @@ const DataUpdate = ({ user }) => {
                     {/* เรียกเก็บ */}
                     <div
                       style={{
-                        width: "120px",
+                        width: "110px",
                         textAlign: "right",
                         padding: "4px 8px",
                       }}
@@ -1495,7 +1551,7 @@ const DataUpdate = ({ user }) => {
                     {/* เก็บได้ */}
                     <div
                       style={{
-                        width: "120px",
+                        width: "110px",
                         textAlign: "right",
                         padding: "4px 8px",
                       }}
@@ -1519,7 +1575,7 @@ const DataUpdate = ({ user }) => {
                     {/* ผลต่าง */}
                     <div
                       style={{
-                        width: "120px",
+                        width: "90px",
                         textAlign: "right",
                         padding: "4px 8px",
                       }}
@@ -1534,20 +1590,28 @@ const DataUpdate = ({ user }) => {
                         ผลต่าง
                       </div>
                       <Text
-                        strong
+                        strong={Math.abs(dept.totals.difference) >= 0.01}
                         style={{
                           color: getDifferenceColor(dept.totals.difference),
+                          fontWeight:
+                            Math.abs(dept.totals.difference) < 0.01
+                              ? "normal"
+                              : "600",
                         }}
                       >
-                        {formatCurrency(dept.totals.difference).toFixed(2)}
+                        {dept.totals.difference < 0 ? "-" : ""}
+                        {Math.abs(dept.totals.difference).toLocaleString(
+                          "th-TH",
+                          { minimumFractionDigits: 2 }
+                        )}
                       </Text>
                     </div>
 
                     {/* หมายเหตุ */}
-                    <div style={{ width: "150px", padding: "4px 8px" }}></div>
+                    <div style={{ width: "80px", padding: "4px 8px" }}></div>
 
                     {/* จัดการ */}
-                    <div style={{ width: "120px", padding: "4px 8px" }}></div>
+                    <div style={{ width: "165px", padding: "4px 8px" }}></div>
                   </div>
                 </div>
               </div>
@@ -1583,12 +1647,24 @@ const DataUpdate = ({ user }) => {
                               display: "flex",
                               alignItems: "center",
                               minWidth: "320px",
+                              maxWidth: "320px",
                             }}
                           >
-                            <Text>
+                            <Text
+                              style={{
+                                whiteSpace: "nowrap",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                maxWidth: "240px",
+                              }}
+                              title={`${section.sect_code} - ${section.sect_name}`}
+                            >
                               {section.sect_code} - {section.sect_name}
                             </Text>
-                            <Tag color="orange" style={{ marginLeft: "8px" }}>
+                            <Tag
+                              color="orange"
+                              style={{ marginLeft: "8px", flexShrink: 0 }}
+                            >
                               รวม {section.totals.count} คน
                             </Tag>
                           </div>
@@ -1605,20 +1681,25 @@ const DataUpdate = ({ user }) => {
                                 width: "1320px", // ตรงกับ table scroll width
                               }}
                             >
+                              {/* ลำดับ */}
+                              <div
+                                style={{ width: "80px", padding: "4px 8px" }}
+                              ></div>
+
                               {/* เลขสมาชิก */}
                               <div
-                                style={{ width: "120px", padding: "4px 8px" }}
+                                style={{ width: "110px", padding: "4px 8px" }}
                               ></div>
 
                               {/* ชื่อ-สกุล */}
                               <div
-                                style={{ width: "200px", padding: "4px 8px" }}
+                                style={{ width: "180px", padding: "4px 8px" }}
                               ></div>
 
                               {/* เงินเดือน */}
                               <div
                                 style={{
-                                  width: "120px",
+                                  width: "110px",
                                   textAlign: "right",
                                   padding: "4px 8px",
                                 }}
@@ -1643,7 +1724,7 @@ const DataUpdate = ({ user }) => {
                               {/* เหลือรับ */}
                               <div
                                 style={{
-                                  width: "120px",
+                                  width: "110px",
                                   textAlign: "right",
                                   padding: "4px 8px",
                                 }}
@@ -1668,7 +1749,7 @@ const DataUpdate = ({ user }) => {
                               {/* เรียกเก็บ */}
                               <div
                                 style={{
-                                  width: "120px",
+                                  width: "110px",
                                   textAlign: "right",
                                   padding: "4px 8px",
                                 }}
@@ -1718,7 +1799,7 @@ const DataUpdate = ({ user }) => {
                               {/* เก็บได้ */}
                               <div
                                 style={{
-                                  width: "120px",
+                                  width: "110px",
                                   textAlign: "right",
                                   padding: "4px 8px",
                                 }}
@@ -1743,7 +1824,7 @@ const DataUpdate = ({ user }) => {
                               {/* ผลต่าง */}
                               <div
                                 style={{
-                                  width: "120px",
+                                  width: "90px",
                                   textAlign: "right",
                                   padding: "4px 8px",
                                 }}
@@ -1758,27 +1839,36 @@ const DataUpdate = ({ user }) => {
                                   ผลต่าง
                                 </div>
                                 <Text
-                                  strong
+                                  strong={
+                                    Math.abs(section.totals.difference) >= 0.01
+                                  }
                                   style={{
                                     color: getDifferenceColor(
                                       section.totals.difference
                                     ),
+                                    fontWeight:
+                                      Math.abs(section.totals.difference) < 0.01
+                                        ? "normal"
+                                        : "600",
                                   }}
                                 >
-                                  {formatCurrency(
+                                  {section.totals.difference < 0 ? "-" : ""}
+                                  {Math.abs(
                                     section.totals.difference
-                                  ).toFixed(2)}
+                                  ).toLocaleString("th-TH", {
+                                    minimumFractionDigits: 2,
+                                  })}
                                 </Text>
                               </div>
 
                               {/* หมายเหตุ */}
                               <div
-                                style={{ width: "150px", padding: "4px 8px" }}
+                                style={{ width: "80px", padding: "4px 8px" }}
                               ></div>
 
                               {/* จัดการ */}
                               <div
-                                style={{ width: "120px", padding: "4px 8px" }}
+                                style={{ width: "165px", padding: "4px 8px" }}
                               ></div>
                             </div>
                           )}
@@ -1852,6 +1942,11 @@ const DataUpdate = ({ user }) => {
                               width: "100%",
                               overflowX: "hidden",
                             }}
+                            rowClassName={(record, index) =>
+                              index % 2 === 0
+                                ? "table-row-light"
+                                : "table-row-dark"
+                            }
                             pagination={{
                               current:
                                 paginationSettings[
@@ -1913,19 +2008,33 @@ const DataUpdate = ({ user }) => {
                             }}
                           >
                             <colgroup>
+                              <col style={{ width: "80px" }} />
+                              <col style={{ width: "110px" }} />
+                              <col style={{ width: "180px" }} />
+                              <col style={{ width: "110px" }} />
+                              <col style={{ width: "110px" }} />
+                              <col style={{ width: "110px" }} />
                               <col style={{ width: "120px" }} />
-                              <col style={{ width: "200px" }} />
-                              <col style={{ width: "120px" }} />
-                              <col style={{ width: "120px" }} />
-                              <col style={{ width: "120px" }} />
-                              <col style={{ width: "120px" }} />
-                              <col style={{ width: "120px" }} />
-                              <col style={{ width: "120px" }} />
-                              <col style={{ width: "150px" }} />
-                              <col style={{ width: "120px" }} />
+                              <col style={{ width: "110px" }} />
+                              <col style={{ width: "90px" }} />
+                              <col style={{ width: "80px" }} />
+                              <col style={{ width: "165px" }} />
                             </colgroup>
                             <tbody>
                               <tr>
+                                {/* ลำดับ */}
+                                <td
+                                  style={{
+                                    padding: "8px 8px",
+                                    textAlign: "center",
+                                    fontWeight: "600",
+                                    color: "#666",
+                                    borderBottom: "none",
+                                  }}
+                                >
+                                  {/* ว่างไว้ */}
+                                </td>
+
                                 {/* เลขสมาชิก */}
                                 <td
                                   style={{
@@ -2172,13 +2281,27 @@ const DataUpdate = ({ user }) => {
                                     if (hasFilter) {
                                       const filteredSummary =
                                         calculateFilteredSummary(filteredData);
-                                      return formatCurrency(
-                                        filteredSummary.difference
-                                      ).toFixed(2);
+                                      return (
+                                        (filteredSummary.difference < 0
+                                          ? "-"
+                                          : "") +
+                                        Math.abs(
+                                          filteredSummary.difference
+                                        ).toLocaleString("th-TH", {
+                                          minimumFractionDigits: 2,
+                                        })
+                                      );
                                     }
-                                    return formatCurrency(
-                                      section.totals.difference
-                                    ).toFixed(2);
+                                    return (
+                                      (section.totals.difference < 0
+                                        ? "-"
+                                        : "") +
+                                      Math.abs(
+                                        section.totals.difference
+                                      ).toLocaleString("th-TH", {
+                                        minimumFractionDigits: 2,
+                                      })
+                                    );
                                   })()}
                                 </td>
 
