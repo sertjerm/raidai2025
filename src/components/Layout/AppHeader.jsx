@@ -173,7 +173,7 @@ function AppHeader({ user, onLogout }) {
         zIndex: 1000,
       }}
     >
-      <div>
+      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
         <Title
           level={4}
           style={{

@@ -14,6 +14,7 @@ export default defineConfig({
       "@utils": resolve(__dirname, "src/utils"),
       "@services": resolve(__dirname, "src/services"),
       "@styles": resolve(__dirname, "src/styles"),
+      "@assets": resolve(__dirname, "src/assets"),
     },
   },
   server: {

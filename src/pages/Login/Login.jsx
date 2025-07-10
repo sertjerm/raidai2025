@@ -6,6 +6,9 @@ import { getApiUrl } from "@config/api";
 import axios from "axios";
 import Swal from "sweetalert2";
 
+// Import โลโก้ KUSCC
+import kusccLogo from "@assets/images/kuscc-logo.png";
+
 const { Title } = Typography;
 
 const Login = ({ onLogin }) => {
@@ -160,15 +163,25 @@ const Login = ({ onLogin }) => {
           zIndex: 2,
         }}
       >
+        {/* โลโก้ KUSCC */}
         <div
           style={{
-            fontSize: "4rem",
-            marginBottom: "1rem",
-            animation: "fadeInUp 1s ease-out",
+            marginBottom: "2rem",
+            animation: "fadeInUp 1s ease-out 0.1s both",
           }}
         >
-          🏛️
+          <img
+            src={kusccLogo}
+            alt="KUSCC Logo"
+            style={{
+              width: "120px",
+              height: "120px",
+              objectFit: "contain",
+              filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.3))",
+            }}
+          />
         </div>
+
         <Title
           level={1}
           style={{
@@ -183,43 +196,17 @@ const Login = ({ onLogin }) => {
           {APP_CONFIG.headerTitle}
         </Title>
         <Title
-          level={3}
+          level={2}
           style={{
             color: "rgba(255, 255, 255, 0.9)",
-            fontWeight: 300,
+            fontWeight: 400,
             marginBottom: "2rem",
             lineHeight: 1.6,
             animation: "fadeInUp 1s ease-out 0.4s both",
           }}
         >
-          ระบบจัดการข้อมูลบุคลากรที่ทันสมัย
-          <br />
-          เพื่อประสิทธิภาพการทำงานที่ดีกว่า
+          ระบบเงินรายได้ 2025
         </Title>
-        <div
-          style={{
-            display: "flex",
-            gap: "2rem",
-            animation: "fadeInUp 1s ease-out 0.6s both",
-          }}
-        >
-          <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>📊</div>
-            <div style={{ fontSize: "0.9rem", opacity: 0.9 }}>
-              รายงานแบบ Real-time
-            </div>
-          </div>
-          <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>🔒</div>
-            <div style={{ fontSize: "0.9rem", opacity: 0.9 }}>
-              ความปลอดภัยสูง
-            </div>
-          </div>
-          <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>⚡</div>
-            <div style={{ fontSize: "0.9rem", opacity: 0.9 }}>ประมวลผลเร็ว</div>
-          </div>
-        </div>
       </div>
 
       {/* Right Side - Login Form */}
@@ -248,19 +235,28 @@ const Login = ({ onLogin }) => {
           <div style={{ textAlign: "center", marginBottom: "2.5rem" }}>
             <div
               style={{
-                width: "80px",
-                height: "80px",
-                background: "linear-gradient(135deg, #2c5aa0 0%, #4a90e2 100%)",
-                borderRadius: "20px",
+                width: "100px",
+                height: "100px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 margin: "0 auto 1.5rem",
-                fontSize: "2rem",
+                borderRadius: "20px",
+                background: "linear-gradient(135deg, #2c5aa0 0%, #4a90e2 100%)",
                 boxShadow: "0 8px 16px rgba(74, 144, 226, 0.4)",
+                padding: "10px",
               }}
             >
-              🚀
+              {/* โลโก้ KUSCC */}
+              <img
+                src={kusccLogo}
+                alt="KUSCC Logo"
+                style={{
+                  width: "80px",
+                  height: "80px",
+                  objectFit: "contain",
+                }}
+              />
             </div>
             <Title
               level={2}
