@@ -62,7 +62,11 @@ const DataUpdate = ({ user }) => {
 
   // Initialize user from props or localStorage
   useEffect(() => {
+    console.log("=== User Initialization Debug ===");
+    console.log("User prop received:", user);
+
     if (user) {
+      console.log("Setting currentUser from prop:", user);
       setCurrentUser(user);
       // Don't overwrite localStorage here - App.jsx handles it
     } else {
@@ -70,22 +74,32 @@ const DataUpdate = ({ user }) => {
       const savedUser = localStorage.getItem("currentUser");
       if (savedUser) {
         try {
-          setCurrentUser(JSON.parse(savedUser));
+          const parsedUser = JSON.parse(savedUser);
+          console.log("Setting currentUser from localStorage:", parsedUser);
+          setCurrentUser(parsedUser);
         } catch (error) {
           console.error("Error parsing saved user:", error);
           localStorage.removeItem("currentUser");
         }
       }
     }
+    console.log("================================");
   }, [user]);
 
   // Fetch data from API
   const fetchData = async (forceRefresh = false) => {
-    const userToUse = currentUser?.userid || currentUser;
+    const userToUse = currentUser?.userid || currentUser?.user || currentUser;
     if (!userToUse) {
       message.error("ไม่พบข้อมูลผู้ใช้ กรุณาเข้าสู่ระบบใหม่");
       return;
     }
+
+    console.log(
+      "Fetching data for userid:",
+      userToUse,
+      "currentUser:",
+      currentUser
+    );
 
     setLoading(true);
     try {
@@ -323,10 +337,13 @@ const DataUpdate = ({ user }) => {
           return (
             <InputNumber
               value={editingData[rowKey]?.mb_salary}
-              onChange={(val) => updateEditingData(rowKey, "mb_salary", val)}
+              onChange={(val) =>
+                updateEditingData(rowKey, "mb_salary", val || 0)
+              }
               style={{ width: "100%", textAlign: "right" }}
               precision={2}
               min={0}
+              placeholder="0"
               formatter={(value) =>
                 `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
               }
@@ -356,10 +373,13 @@ const DataUpdate = ({ user }) => {
           return (
             <InputNumber
               value={editingData[rowKey]?.remaining}
-              onChange={(val) => updateEditingData(rowKey, "remaining", val)}
+              onChange={(val) =>
+                updateEditingData(rowKey, "remaining", val || 0)
+              }
               style={{ width: "100%", textAlign: "right" }}
               precision={2}
               min={0}
+              placeholder="0"
               formatter={(value) =>
                 `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
               }
@@ -389,10 +409,11 @@ const DataUpdate = ({ user }) => {
           return (
             <InputNumber
               value={editingData[rowKey]?.collect}
-              onChange={(val) => updateEditingData(rowKey, "collect", val)}
+              onChange={(val) => updateEditingData(rowKey, "collect", val || 0)}
               style={{ width: "100%", textAlign: "right" }}
               precision={2}
               min={0}
+              placeholder="0"
               formatter={(value) =>
                 `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
               }
@@ -433,22 +454,32 @@ const DataUpdate = ({ user }) => {
         if (isEditing) {
           return (
             <InputNumber
-              value={editingData[rowKey]?.collected}
-              onChange={(val) => updateEditingData(rowKey, "collected", val)}
+              value={editingData[rowKey]?.collected ?? record.TOTAL2}
+              onChange={(val) => {
+                // อนุญาตให้ใส่ค่า 0 หรือ null
+                const newValue = val === null || val === undefined ? 0 : val;
+                updateEditingData(rowKey, "collected", newValue);
+              }}
               style={{ width: "100%", textAlign: "right" }}
               precision={2}
               min={0}
-              formatter={(value) =>
-                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-              }
-              parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
+              placeholder="0.00"
+              formatter={(value) => {
+                if (value === null || value === undefined || value === "")
+                  return "0.00";
+                return `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+              }}
+              parser={(value) => {
+                if (!value) return 0;
+                return value.replace(/\$\s?|(,*)/g, "");
+              }}
             />
           );
         }
 
         return (
           <Text style={{ color: "#52c41a" }}>
-            {value?.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+            {(value ?? 0).toLocaleString("th-TH", { minimumFractionDigits: 2 })}
           </Text>
         );
       },
@@ -648,22 +679,38 @@ const DataUpdate = ({ user }) => {
     try {
       // เตรียมข้อมูลสำหรับ API
       const apiData = {
-        userid: currentUser?.userid || currentUser,
+        userid: currentUser?.userid || currentUser?.user || currentUser,
         PeriodID: record.PeriodID || 139, // ใช้จาก record หรือ default
         data: [
           {
             NOTE: editData.NOTE || "",
-            TOTAL1: editData.collect || record.TOTAL1, // เพิ่ม TOTAL1 (เรียกเก็บ)
-            TOTAL2: editData.collected || record.TOTAL2,
+            TOTAL1:
+              editData.collect !== undefined ? editData.collect : record.TOTAL1,
+            TOTAL2:
+              editData.collected !== undefined
+                ? editData.collected
+                : record.TOTAL2,
             mb_code: record.mb_code,
-            mb_money: editData.remaining || record.mb_money,
-            mb_salary: editData.mb_salary || record.mb_salary,
+            mb_money:
+              editData.remaining !== undefined
+                ? editData.remaining
+                : record.mb_money,
+            mb_salary:
+              editData.mb_salary !== undefined
+                ? editData.mb_salary
+                : record.mb_salary,
           },
         ],
       };
 
       console.log("=== Save Edit Debug ===");
+      console.log("Current user object:", currentUser);
+      console.log(
+        "Using userid:",
+        currentUser?.userid || currentUser?.user || currentUser
+      );
       console.log("Original record:", record);
+      console.log("Record LASTUPDATE:", record.LASTUPDATE);
       console.log("Edit data:", editData);
       console.log("API payload:", JSON.stringify(apiData, null, 2));
       console.log("======================");
@@ -782,21 +829,39 @@ const DataUpdate = ({ user }) => {
 
           return {
             NOTE: editData.NOTE || "",
-            TOTAL1: editData.collect || originalRecord?.TOTAL1, // เพิ่ม TOTAL1 (เรียกเก็บ)
-            TOTAL2: editData.collected || originalRecord?.TOTAL2,
+            TOTAL1:
+              editData.collect !== undefined
+                ? editData.collect
+                : originalRecord?.TOTAL1,
+            TOTAL2:
+              editData.collected !== undefined
+                ? editData.collected
+                : originalRecord?.TOTAL2,
             mb_code: mb_code,
-            mb_money: editData.remaining || originalRecord?.mb_money,
-            mb_salary: editData.mb_salary || originalRecord?.mb_salary,
+            mb_money:
+              editData.remaining !== undefined
+                ? editData.remaining
+                : originalRecord?.mb_money,
+            mb_salary:
+              editData.mb_salary !== undefined
+                ? editData.mb_salary
+                : originalRecord?.mb_salary,
           };
         }
       );
 
       const apiData = {
-        userid: currentUser?.userid || currentUser,
+        userid: currentUser?.userid || currentUser?.user || currentUser,
         PeriodID: 139, // หรือ get จาก record แรก
         data: batchDataArray,
       };
 
+      console.log("=== Batch Save Debug ===");
+      console.log("Current user object:", currentUser);
+      console.log(
+        "Using userid:",
+        currentUser?.userid || currentUser?.user || currentUser
+      );
       console.log("Saving batch changes:", apiData);
 
       const config = {
