@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Form, Input, Button, Card, Typography, message } from "antd";
+import { Form, Input, Button, Card, Typography } from "antd";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
 import { APP_CONFIG } from "@config/constants";
 import { getApiUrl } from "@config/api";
 import axios from "axios";
+import Swal from "sweetalert2";
 
 const { Title } = Typography;
 
@@ -35,28 +36,64 @@ const Login = ({ onLogin }) => {
       // ตรวจสอบ response
       if (response.data && response.data.responseCode === 200) {
         const userData = response.data.data;
-        message.success(
-          `เข้าสู่ระบบสำเร็จ! ยินดีต้อนรับคุณ ${
+        await Swal.fire({
+          icon: "success",
+          title: "เข้าสู่ระบบสำเร็จ!",
+          text: `ยินดีต้อนรับคุณ ${
             userData.username || userData.name || userData.userid
-          }`
-        );
+          }`,
+          timer: 2500,
+          timerProgressBar: true,
+          showConfirmButton: false,
+          toast: true,
+          position: "top-end",
+          background: "#f6ffed",
+          color: "#52c41a",
+          iconColor: "#52c41a",
+        });
         // ส่ง userData object ทั้งหมดไปให้ parent component
         onLogin(userData);
       } else {
-        message.error("รหัสผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง");
+        // ใช้ responseMessage จาก API หรือ fallback เป็นข้อความเริ่มต้น
+        const errorMessage = response.data?.responseMessage || "รหัสผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง";
+        
+        await Swal.fire({
+          icon: "error",
+          title: "เข้าสู่ระบบไม่สำเร็จ",
+          text: errorMessage,
+          confirmButtonText: "ลองใหม่",
+          confirmButtonColor: "#1890ff",
+          background: "#fff2f0",
+          iconColor: "#ff4d4f",
+          customClass: {
+            title: "swal-title-error",
+            content: "swal-content-error",
+          },
+        });
       }
     } catch (error) {
       console.error("Login error:", error);
+      let errorMessage = "เกิดข้อผิดพลาดในการเข้าสู่ระบบ";
+
       if (error.response && error.response.data) {
-        message.error(
-          error.response.data.responseMessage ||
-            "เกิดข้อผิดพลาดในการเข้าสู่ระบบ"
-        );
+        errorMessage = error.response.data.responseMessage || errorMessage;
       } else if (error.message) {
-        message.error(`เกิดข้อผิดพลาด: ${error.message}`);
-      } else {
-        message.error("เกิดข้อผิดพลาดในการเข้าสู่ระบบ");
+        errorMessage = `เกิดข้อผิดพลาด: ${error.message}`;
       }
+
+      await Swal.fire({
+        icon: "error",
+        title: "เกิดข้อผิดพลาด",
+        text: errorMessage,
+        confirmButtonText: "ตกลง",
+        confirmButtonColor: "#1890ff",
+        background: "#fff2f0",
+        iconColor: "#ff4d4f",
+        customClass: {
+          title: "swal-title-error",
+          content: "swal-content-error",
+        },
+      });
     } finally {
       setLoading(false);
     }
@@ -97,7 +134,7 @@ const Login = ({ onLogin }) => {
               marginBottom: 0,
             }}
           >
-            {APP_CONFIG.name}
+            {APP_CONFIG.headerTitle}
           </Title>
         </div>
 
@@ -134,10 +171,32 @@ const Login = ({ onLogin }) => {
                 fontSize: "16px",
               }}
             >
-              เข้าสู่ระบบ
+              ลงชื่อเข้าใช้
             </Button>
           </Form.Item>
         </Form>
+
+        {/* Build Information */}
+        <div
+          style={{
+            textAlign: "center",
+            marginTop: "1.5rem",
+            paddingTop: "1rem",
+            borderTop: "1px solid #e6f3ff",
+            fontSize: "12px",
+            color: "#999",
+          }}
+        >
+          <div>เวอร์ชัน 1.0.0</div>
+          <div>
+            อัปเดตล่าสุด:{" "}
+            {new Date().toLocaleDateString("th-TH", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
+          </div>
+        </div>
       </Card>
     </div>
   );

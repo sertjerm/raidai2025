@@ -1,6 +1,6 @@
 export const APP_CONFIG = {
   name: "RD2025",
-  headerTitle: "ระบบเก็บเงินพนักงานเงินรายได้ 2025",
+  headerTitle: "ระบบเงินรายได้ 2025",
   version: "1.0.0",
   year: "2025",
   defaultUser: "021000",

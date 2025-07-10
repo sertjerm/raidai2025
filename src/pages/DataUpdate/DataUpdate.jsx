@@ -25,6 +25,7 @@ import {
   EditOutlined,
   SaveOutlined,
   CloseOutlined,
+  SearchOutlined,
 } from "@ant-design/icons";
 import { getApiUrl } from "@config/api";
 import axios from "axios";
@@ -46,6 +47,7 @@ const DataUpdate = ({ user }) => {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [batchChanges, setBatchChanges] = useState({}); // สำหรับ batch mode
   const [savingRows, setSavingRows] = useState({}); // เก็บ row ที่กำลัง save
+  const [searchTexts, setSearchTexts] = useState({}); // เก็บ search text ของแต่ละ section
 
   // Helper functions
   const formatCurrency = (value) => {
@@ -982,6 +984,64 @@ const DataUpdate = ({ user }) => {
     }
   };
 
+  // ฟังก์ชันค้นหา/กรองข้อมูลสำหรับแต่ละ section
+  const handleSectionSearch = (sectionKey, searchValue) => {
+    setSearchTexts((prev) => ({
+      ...prev,
+      [sectionKey]: searchValue,
+    }));
+  };
+
+  // ฟิลเตอร์ข้อมูลตาม search text
+  const getFilteredData = (data, sectionKey) => {
+    const searchText = searchTexts[sectionKey]?.toLowerCase() || "";
+    if (!searchText) return data;
+
+    return data.filter((record) => {
+      const memberCode = record.mb_code?.toString().toLowerCase() || "";
+      const memberName = record.fullname?.toLowerCase() || "";
+      const note = record.NOTE?.toLowerCase() || "";
+
+      return (
+        memberCode.includes(searchText) ||
+        memberName.includes(searchText) ||
+        note.includes(searchText)
+      );
+    });
+  };
+
+  // ฟังก์ชันคำนวณ summary ใหม่สำหรับข้อมูลที่ถูกกรอง
+  const calculateFilteredSummary = (filteredData) => {
+    return filteredData.reduce(
+      (acc, record) => {
+        acc.count += 1;
+        acc.salary += record.mb_salary || 0;
+        acc.money += record.mb_money || 0;
+        acc.aidAmount += record.INVC_AIDAMNT || 0;
+        acc.total1 += record.TOTAL1 || 0;
+        acc.total2 += record.TOTAL2 || 0;
+        const rawDifference =
+          (record.TOTAL2 || 0) -
+          ((record.TOTAL1 || 0) + (record.INVC_AIDAMNT || 0));
+        const difference =
+          Math.abs(rawDifference) < 0.01
+            ? 0
+            : Math.round(rawDifference * 100) / 100;
+        acc.difference += difference;
+        return acc;
+      },
+      {
+        count: 0,
+        salary: 0,
+        money: 0,
+        aidAmount: 0,
+        total1: 0,
+        total2: 0,
+        difference: 0,
+      }
+    );
+  };
+
   if (loading) {
     return (
       <div style={{ textAlign: "center", padding: "4rem" }}>
@@ -1605,9 +1665,56 @@ const DataUpdate = ({ user }) => {
                       }
                       key={`${dept.dept_code}-${section.sect_code}`}
                     >
+                      {/* Search box สำหรับแต่ละ section */}
+                      <div style={{ marginBottom: "16px" }}>
+                        <Input
+                          placeholder="ค้นหาเลขสมาชิก, ชื่อ-สกุล, หรือหมายเหตุ..."
+                          prefix={<SearchOutlined />}
+                          value={
+                            searchTexts[
+                              `${dept.dept_code}-${section.sect_code}`
+                            ] || ""
+                          }
+                          onChange={(e) =>
+                            handleSectionSearch(
+                              `${dept.dept_code}-${section.sect_code}`,
+                              e.target.value
+                            )
+                          }
+                          allowClear
+                          style={{
+                            maxWidth: 400,
+                            marginBottom: 8,
+                          }}
+                        />
+                        {searchTexts[
+                          `${dept.dept_code}-${section.sect_code}`
+                        ] && (
+                          <div
+                            style={{
+                              fontSize: "12px",
+                              color: "#666",
+                              marginLeft: 24,
+                            }}
+                          >
+                            พบ{" "}
+                            {
+                              getFilteredData(
+                                section.members,
+                                `${dept.dept_code}-${section.sect_code}`
+                              ).length
+                            }{" "}
+                            รายการ จากทั้งหมด {section.members.length} รายการ
+                          </div>
+                        )}
+                      </div>
+
                       <Table
                         columns={memberColumns}
-                        dataSource={section.members}
+                        dataSource={getFilteredData(
+                          section.members,
+                          `${dept.dept_code}-${section.sect_code}`
+                        )}
                         rowKey="mb_code"
                         scroll={{ x: 1320 }}
                         pagination={{
@@ -1622,7 +1729,13 @@ const DataUpdate = ({ user }) => {
                           showSizeChanger: true,
                           showQuickJumper: true,
                           showTotal: (total, range) =>
-                            `แสดง ${range[0]}-${range[1]} จาก ${total} รายการ`,
+                            `แสดง ${range[0]}-${range[1]} จาก ${total} รายการ${
+                              searchTexts[
+                                `${dept.dept_code}-${section.sect_code}`
+                              ]
+                                ? " (ถูกกรอง)"
+                                : ""
+                            }`,
                           pageSizeOptions: ["10", "20", "50", "100", "200"],
                           onChange: (page, pageSize) => {
                             const key = `${dept.dept_code}-${section.sect_code}`;
@@ -1685,7 +1798,19 @@ const DataUpdate = ({ user }) => {
                                   borderBottom: "none",
                                 }}
                               >
-                                รวม {section.totals.count} คน
+                                {(() => {
+                                  const filteredData = getFilteredData(
+                                    section.members,
+                                    `${dept.dept_code}-${section.sect_code}`
+                                  );
+                                  const hasFilter =
+                                    searchTexts[
+                                      `${dept.dept_code}-${section.sect_code}`
+                                    ];
+                                  return hasFilter
+                                    ? `รวม ${filteredData.length}/${section.totals.count} คน`
+                                    : `รวม ${section.totals.count} คน`;
+                                })()}
                               </td>
 
                               {/* ชื่อ-สกุล */}
@@ -1707,9 +1832,28 @@ const DataUpdate = ({ user }) => {
                                   borderBottom: "none",
                                 }}
                               >
-                                {section.totals.salary.toLocaleString("th-TH", {
-                                  minimumFractionDigits: 2,
-                                })}
+                                {(() => {
+                                  const filteredData = getFilteredData(
+                                    section.members,
+                                    `${dept.dept_code}-${section.sect_code}`
+                                  );
+                                  const hasFilter =
+                                    searchTexts[
+                                      `${dept.dept_code}-${section.sect_code}`
+                                    ];
+                                  if (hasFilter) {
+                                    const filteredSummary =
+                                      calculateFilteredSummary(filteredData);
+                                    return filteredSummary.salary.toLocaleString(
+                                      "th-TH",
+                                      { minimumFractionDigits: 2 }
+                                    );
+                                  }
+                                  return section.totals.salary.toLocaleString(
+                                    "th-TH",
+                                    { minimumFractionDigits: 2 }
+                                  );
+                                })()}
                               </td>
 
                               {/* เหลือรับ */}
@@ -1721,9 +1865,28 @@ const DataUpdate = ({ user }) => {
                                   borderBottom: "none",
                                 }}
                               >
-                                {section.totals.money.toLocaleString("th-TH", {
-                                  minimumFractionDigits: 2,
-                                })}
+                                {(() => {
+                                  const filteredData = getFilteredData(
+                                    section.members,
+                                    `${dept.dept_code}-${section.sect_code}`
+                                  );
+                                  const hasFilter =
+                                    searchTexts[
+                                      `${dept.dept_code}-${section.sect_code}`
+                                    ];
+                                  if (hasFilter) {
+                                    const filteredSummary =
+                                      calculateFilteredSummary(filteredData);
+                                    return filteredSummary.money.toLocaleString(
+                                      "th-TH",
+                                      { minimumFractionDigits: 2 }
+                                    );
+                                  }
+                                  return section.totals.money.toLocaleString(
+                                    "th-TH",
+                                    { minimumFractionDigits: 2 }
+                                  );
+                                })()}
                               </td>
 
                               {/* เรียกเก็บ */}
@@ -1736,9 +1899,28 @@ const DataUpdate = ({ user }) => {
                                   borderBottom: "none",
                                 }}
                               >
-                                {section.totals.total1.toLocaleString("th-TH", {
-                                  minimumFractionDigits: 2,
-                                })}
+                                {(() => {
+                                  const filteredData = getFilteredData(
+                                    section.members,
+                                    `${dept.dept_code}-${section.sect_code}`
+                                  );
+                                  const hasFilter =
+                                    searchTexts[
+                                      `${dept.dept_code}-${section.sect_code}`
+                                    ];
+                                  if (hasFilter) {
+                                    const filteredSummary =
+                                      calculateFilteredSummary(filteredData);
+                                    return filteredSummary.total1.toLocaleString(
+                                      "th-TH",
+                                      { minimumFractionDigits: 2 }
+                                    );
+                                  }
+                                  return section.totals.total1.toLocaleString(
+                                    "th-TH",
+                                    { minimumFractionDigits: 2 }
+                                  );
+                                })()}
                               </td>
 
                               {/* เงินทำบุญ */}
@@ -1751,12 +1933,28 @@ const DataUpdate = ({ user }) => {
                                   borderBottom: "none",
                                 }}
                               >
-                                {section.totals.aidAmount.toLocaleString(
-                                  "th-TH",
-                                  {
-                                    minimumFractionDigits: 0,
+                                {(() => {
+                                  const filteredData = getFilteredData(
+                                    section.members,
+                                    `${dept.dept_code}-${section.sect_code}`
+                                  );
+                                  const hasFilter =
+                                    searchTexts[
+                                      `${dept.dept_code}-${section.sect_code}`
+                                    ];
+                                  if (hasFilter) {
+                                    const filteredSummary =
+                                      calculateFilteredSummary(filteredData);
+                                    return filteredSummary.aidAmount.toLocaleString(
+                                      "th-TH",
+                                      { minimumFractionDigits: 0 }
+                                    );
                                   }
-                                )}
+                                  return section.totals.aidAmount.toLocaleString(
+                                    "th-TH",
+                                    { minimumFractionDigits: 0 }
+                                  );
+                                })()}
                               </td>
 
                               {/* เก็บได้ */}
@@ -1769,9 +1967,28 @@ const DataUpdate = ({ user }) => {
                                   borderBottom: "none",
                                 }}
                               >
-                                {section.totals.total2.toLocaleString("th-TH", {
-                                  minimumFractionDigits: 2,
-                                })}
+                                {(() => {
+                                  const filteredData = getFilteredData(
+                                    section.members,
+                                    `${dept.dept_code}-${section.sect_code}`
+                                  );
+                                  const hasFilter =
+                                    searchTexts[
+                                      `${dept.dept_code}-${section.sect_code}`
+                                    ];
+                                  if (hasFilter) {
+                                    const filteredSummary =
+                                      calculateFilteredSummary(filteredData);
+                                    return filteredSummary.total2.toLocaleString(
+                                      "th-TH",
+                                      { minimumFractionDigits: 2 }
+                                    );
+                                  }
+                                  return section.totals.total2.toLocaleString(
+                                    "th-TH",
+                                    { minimumFractionDigits: 2 }
+                                  );
+                                })()}
                               </td>
 
                               {/* ผลต่าง */}
@@ -1780,15 +1997,51 @@ const DataUpdate = ({ user }) => {
                                   padding: "8px 8px",
                                   textAlign: "right",
                                   fontWeight: "600",
-                                  color: getDifferenceColor(
-                                    section.totals.difference
-                                  ),
+                                  color: (() => {
+                                    const filteredData = getFilteredData(
+                                      section.members,
+                                      `${dept.dept_code}-${section.sect_code}`
+                                    );
+                                    const hasFilter =
+                                      searchTexts[
+                                        `${dept.dept_code}-${section.sect_code}`
+                                      ];
+                                    if (hasFilter) {
+                                      const filteredSummary =
+                                        calculateFilteredSummary(filteredData);
+                                      return getDifferenceColor(
+                                        formatCurrency(
+                                          filteredSummary.difference
+                                        )
+                                      );
+                                    }
+                                    return getDifferenceColor(
+                                      section.totals.difference
+                                    );
+                                  })(),
                                   borderBottom: "none",
                                 }}
                               >
-                                {formatCurrency(
-                                  section.totals.difference
-                                ).toFixed(2)}
+                                {(() => {
+                                  const filteredData = getFilteredData(
+                                    section.members,
+                                    `${dept.dept_code}-${section.sect_code}`
+                                  );
+                                  const hasFilter =
+                                    searchTexts[
+                                      `${dept.dept_code}-${section.sect_code}`
+                                    ];
+                                  if (hasFilter) {
+                                    const filteredSummary =
+                                      calculateFilteredSummary(filteredData);
+                                    return formatCurrency(
+                                      filteredSummary.difference
+                                    ).toFixed(2);
+                                  }
+                                  return formatCurrency(
+                                    section.totals.difference
+                                  ).toFixed(2);
+                                })()}
                               </td>
 
                               {/* หมายเหตุ */}
