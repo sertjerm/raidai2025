@@ -42,6 +42,10 @@ const DataUpdate = ({ user }) => {
   const [departmentExpandedKeys, setDepartmentExpandedKeys] = useState([]);
   const [editingRows, setEditingRows] = useState({}); // เก็บ row ที่กำลัง edit
   const [editingData, setEditingData] = useState({}); // เก็บข้อมูลที่กำลัง edit
+  const [saveMode, setSaveMode] = useState("auto"); // 'auto' หรือ 'batch'
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [batchChanges, setBatchChanges] = useState({}); // สำหรับ batch mode
+  const [savingRows, setSavingRows] = useState({}); // เก็บ row ที่กำลัง save
 
   // Helper functions
   const formatCurrency = (value) => {
@@ -76,7 +80,7 @@ const DataUpdate = ({ user }) => {
   }, [user]);
 
   // Fetch data from API
-  const fetchData = async () => {
+  const fetchData = async (forceRefresh = false) => {
     const userToUse = currentUser?.userid || currentUser;
     if (!userToUse) {
       message.error("ไม่พบข้อมูลผู้ใช้ กรุณาเข้าสู่ระบบใหม่");
@@ -85,20 +89,48 @@ const DataUpdate = ({ user }) => {
 
     setLoading(true);
     try {
+      // เพิ่ม timestamp เพื่อป้องกัน cache
+      const timestamp = forceRefresh ? `&_t=${Date.now()}` : "";
+
       const config = {
         method: "get",
         maxBodyLength: Infinity,
         url: getApiUrl(
-          `/raidai2025Service/service1.svc/GetRaidaiByUser2025?userid=${userToUse}`
+          `/raidai2025Service/service1.svc/GetRaidaiByUser2025?userid=${userToUse}${timestamp}`
         ),
         headers: {
-          Cookie: "ASP.NET_SessionId=jxsggjja23h31adphlkb15tl",
+          // ลบ Cookie header เพราะบราวเซอร์ไม่อนุญาต
+          "Cache-Control": "no-cache",
+          Pragma: "no-cache",
         },
       };
 
       const response = await axios.request(config);
 
+      console.log("Fetch data response:", response.data);
+
       if (response.data && response.data.responseCode === 200) {
+        console.log("Fetched data count:", response.data.data?.length); // Debug: ดูข้อมูลที่เปลี่ยนแปลง (ปิดเพื่อ performance)
+        /* 
+      if (data && response.data.data) {
+        const newData = response.data.data;
+        const changes = newData.filter((newItem) => {
+          const oldItem = data.find((old) => old.mb_code === newItem.mb_code);
+          if (!oldItem) return true;
+
+          return (
+            oldItem.mb_salary !== newItem.mb_salary ||
+            oldItem.mb_money !== newItem.mb_money ||
+            oldItem.TOTAL1 !== newItem.TOTAL1 ||
+            oldItem.TOTAL2 !== newItem.TOTAL2 ||
+            oldItem.NOTE !== newItem.NOTE
+          );
+        });
+
+        console.log("Data changes detected:", changes.length, changes);
+      }
+      */
+
         setData(response.data.data);
         processDataStructure(response.data.data);
       } else {
@@ -156,10 +188,10 @@ const DataUpdate = ({ user }) => {
         };
       }
 
-      // Calculate difference: total1 + aidAmount - total2
+      // Calculate difference: total2 - (total1 + aidAmount)
       // แก้ไขปัญหา -0.00 โดยใช้ Math.round และตรวจสอบค่าใกล้ 0
       const rawDifference =
-        (item.TOTAL1 || 0) + (item.INVC_AIDAMNT || 0) - (item.TOTAL2 || 0);
+        (item.TOTAL2 || 0) - ((item.TOTAL1 || 0) + (item.INVC_AIDAMNT || 0));
       const difference =
         Math.abs(rawDifference) < 0.01
           ? 0
@@ -177,20 +209,20 @@ const DataUpdate = ({ user }) => {
       const section = departments[deptKey].sections[sectKey];
       section.totals.count += 1;
       section.totals.salary += item.mb_salary || 0;
-      section.totals.money += item.mb_money || 0;
+      section.totals.money += item.mb_money || 0; // เหลือรับ
       section.totals.aidAmount += item.INVC_AIDAMNT || 0;
-      section.totals.total1 += item.TOTAL1 || 0;
-      section.totals.total2 += item.TOTAL2 || 0;
+      section.totals.total1 += item.TOTAL1 || 0; // เรียกเก็บ
+      section.totals.total2 += item.TOTAL2 || 0; // เก็บได้
       section.totals.difference += difference;
 
       // Update department totals
       const dept = departments[deptKey];
       dept.totals.count += 1;
       dept.totals.salary += item.mb_salary || 0;
-      dept.totals.money += item.mb_money || 0;
+      dept.totals.money += item.mb_money || 0; // เหลือรับ
       dept.totals.aidAmount += item.INVC_AIDAMNT || 0;
-      dept.totals.total1 += item.TOTAL1 || 0;
-      dept.totals.total2 += item.TOTAL2 || 0;
+      dept.totals.total1 += item.TOTAL1 || 0; // เรียกเก็บ
+      dept.totals.total2 += item.TOTAL2 || 0; // เก็บได้
       dept.totals.difference += difference;
     });
 
@@ -283,28 +315,37 @@ const DataUpdate = ({ user }) => {
       key: "mb_salary",
       width: 120,
       align: "right",
-      render: (value) => (
-        <Text>
-          {value?.toLocaleString("th-TH", { minimumFractionDigits: 0 })}
-        </Text>
-      ),
+      render: (value, record) => {
+        const rowKey = record.mb_code;
+        const isEditing = editingRows[rowKey];
+
+        if (isEditing) {
+          return (
+            <InputNumber
+              value={editingData[rowKey]?.mb_salary}
+              onChange={(val) => updateEditingData(rowKey, "mb_salary", val)}
+              style={{ width: "100%", textAlign: "right" }}
+              precision={2}
+              min={0}
+              formatter={(value) =>
+                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+              }
+              parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
+            />
+          );
+        }
+
+        return (
+          <Text>
+            {value?.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+          </Text>
+        );
+      },
     },
     {
       title: "เหลือรับ",
-      dataIndex: "mb_salary",
+      dataIndex: "mb_money", // แก้ไขเป็น mb_money
       key: "remaining",
-      width: 120,
-      align: "right",
-      render: (value) => (
-        <Text>
-          {value?.toLocaleString("th-TH", { minimumFractionDigits: 0 })}
-        </Text>
-      ),
-    },
-    {
-      title: "เรียกเก็บ",
-      dataIndex: "mb_money",
-      key: "mb_money",
       width: 120,
       align: "right",
       render: (value, record) => {
@@ -314,11 +355,48 @@ const DataUpdate = ({ user }) => {
         if (isEditing) {
           return (
             <InputNumber
-              value={editingData[rowKey]?.mb_money}
-              onChange={(val) => updateEditingData(rowKey, "mb_money", val)}
-              style={{ width: "100%" }}
+              value={editingData[rowKey]?.remaining}
+              onChange={(val) => updateEditingData(rowKey, "remaining", val)}
+              style={{ width: "100%", textAlign: "right" }}
               precision={2}
               min={0}
+              formatter={(value) =>
+                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+              }
+              parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
+            />
+          );
+        }
+
+        return (
+          <Text>
+            {value?.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+          </Text>
+        );
+      },
+    },
+    {
+      title: "เรียกเก็บ",
+      dataIndex: "TOTAL1", // แก้ไขเป็น TOTAL1
+      key: "collect",
+      width: 120,
+      align: "right",
+      render: (value, record) => {
+        const rowKey = record.mb_code;
+        const isEditing = editingRows[rowKey];
+
+        if (isEditing) {
+          return (
+            <InputNumber
+              value={editingData[rowKey]?.collect}
+              onChange={(val) => updateEditingData(rowKey, "collect", val)}
+              style={{ width: "100%", textAlign: "right" }}
+              precision={2}
+              min={0}
+              formatter={(value) =>
+                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+              }
+              parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
             />
           );
         }
@@ -336,6 +414,18 @@ const DataUpdate = ({ user }) => {
       key: "INVC_AIDAMNT",
       width: 120,
       align: "right",
+      render: (value) => (
+        <Text style={{ color: "#fa8c16" }}>
+          {value?.toLocaleString("th-TH", { minimumFractionDigits: 0 })}
+        </Text>
+      ),
+    },
+    {
+      title: "เก็บได้",
+      dataIndex: "TOTAL2", // แก้ไขเป็น TOTAL2
+      key: "collected",
+      width: 120,
+      align: "right",
       render: (value, record) => {
         const rowKey = record.mb_code;
         const isEditing = editingRows[rowKey];
@@ -343,33 +433,25 @@ const DataUpdate = ({ user }) => {
         if (isEditing) {
           return (
             <InputNumber
-              value={editingData[rowKey]?.INVC_AIDAMNT}
-              onChange={(val) => updateEditingData(rowKey, "INVC_AIDAMNT", val)}
-              style={{ width: "100%" }}
+              value={editingData[rowKey]?.collected}
+              onChange={(val) => updateEditingData(rowKey, "collected", val)}
+              style={{ width: "100%", textAlign: "right" }}
               precision={2}
               min={0}
+              formatter={(value) =>
+                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+              }
+              parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
             />
           );
         }
 
         return (
-          <Text style={{ color: "#fa8c16" }}>
+          <Text style={{ color: "#52c41a" }}>
             {value?.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
           </Text>
         );
       },
-    },
-    {
-      title: "เก็บได้",
-      dataIndex: "TOTAL1",
-      key: "TOTAL1",
-      width: 120,
-      align: "right",
-      render: (value) => (
-        <Text style={{ color: "#52c41a" }}>
-          {value?.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
-        </Text>
-      ),
     },
     {
       title: "ผลต่าง",
@@ -377,8 +459,33 @@ const DataUpdate = ({ user }) => {
       key: "difference",
       width: 120,
       align: "right",
-      render: (value) => {
-        const formatted = formatCurrency(value);
+      render: (value, record) => {
+        const rowKey = record.mb_code;
+        const editData = editingData[rowKey];
+
+        // คำนวณผลต่างใหม่จากข้อมูลที่แก้ไข (ถ้ามี)
+        let calculatedDifference = value;
+        if (editData && editingRows[rowKey]) {
+          // ใช้ข้อมูลจาก editingData เฉพาะเมื่อกำลัง edit
+          const collect =
+            editData.collect !== undefined ? editData.collect : record.TOTAL1;
+          const collected =
+            editData.collected !== undefined
+              ? editData.collected
+              : record.TOTAL2;
+          // ใช้ INVC_AIDAMNT จากข้อมูลต้นฉบับเสมอ (ไม่ให้แก้ไข)
+          const aidAmount = record.INVC_AIDAMNT;
+
+          calculatedDifference =
+            (collected || 0) - ((collect || 0) + (aidAmount || 0));
+        } else {
+          // ใช้ข้อมูลจาก record ตรงๆ เมื่อไม่ได้ edit
+          calculatedDifference =
+            (record.TOTAL2 || 0) -
+            ((record.TOTAL1 || 0) + (record.INVC_AIDAMNT || 0));
+        }
+
+        const formatted = formatCurrency(calculatedDifference);
         return (
           <Text
             style={{ color: getDifferenceColor(formatted), fontWeight: "600" }}
@@ -390,8 +497,8 @@ const DataUpdate = ({ user }) => {
     },
     {
       title: "หมายเหตุ",
-      dataIndex: "mb_note",
-      key: "mb_note",
+      dataIndex: "NOTE", // แก้ไขเป็น NOTE
+      key: "NOTE",
       width: 150,
       render: (note, record) => {
         const rowKey = record.mb_code;
@@ -400,9 +507,9 @@ const DataUpdate = ({ user }) => {
         if (isEditing) {
           return (
             <Input
-              value={editingData[rowKey]?.mb_note}
+              value={editingData[rowKey]?.NOTE}
               onChange={(e) =>
-                updateEditingData(rowKey, "mb_note", e.target.value)
+                updateEditingData(rowKey, "NOTE", e.target.value)
               }
               placeholder="หมายเหตุ"
             />
@@ -420,22 +527,49 @@ const DataUpdate = ({ user }) => {
       render: (_, record) => {
         const rowKey = record.mb_code;
         const isEditing = editingRows[rowKey];
+        const isSaving = savingRows[rowKey];
 
         if (isEditing) {
           return (
             <Space>
-              <Popconfirm
-                title="บันทึกการเปลี่ยนแปลง?"
-                onConfirm={() => saveEdit(record)}
-                okText="บันทึก"
-                cancelText="ยกเลิก"
-              >
-                <Button type="primary" size="small" icon={<SaveOutlined />} />
-              </Popconfirm>
+              {saveMode === "auto" ? (
+                // Auto save mode: บันทึกทันที
+                <Popconfirm
+                  title="บันทึกการเปลี่ยนแปลง?"
+                  onConfirm={() => saveEdit(record)}
+                  okText="บันทึก"
+                  cancelText="ยกเลิก"
+                  disabled={isSaving}
+                >
+                  <Button
+                    type="primary"
+                    size="small"
+                    icon={<SaveOutlined />}
+                    loading={isSaving}
+                    disabled={isSaving}
+                  />
+                </Popconfirm>
+              ) : (
+                // Batch mode: เก็บไว้แล้วบันทึกทีเดียว
+                <Button
+                  type="primary"
+                  size="small"
+                  icon={<CheckCircleOutlined />}
+                  onClick={() => {
+                    const newEditingRows = { ...editingRows };
+                    delete newEditingRows[record.mb_code];
+                    setEditingRows(newEditingRows);
+                    message.success("เก็บการเปลี่ยนแปลงแล้ว");
+                  }}
+                  style={{ backgroundColor: "#52c41a" }}
+                  disabled={isSaving}
+                />
+              )}
               <Button
                 size="small"
                 icon={<CloseOutlined />}
                 onClick={() => cancelEdit(record)}
+                disabled={isSaving}
               />
             </Space>
           );
@@ -447,6 +581,7 @@ const DataUpdate = ({ user }) => {
             size="small"
             icon={<EditOutlined />}
             onClick={() => startEdit(record)}
+            disabled={isSaving}
           />
         );
       },
@@ -460,11 +595,27 @@ const DataUpdate = ({ user }) => {
     setEditingData({
       ...editingData,
       [rowKey]: {
-        mb_money: record.mb_money,
-        INVC_AIDAMNT: record.INVC_AIDAMNT,
-        mb_note: record.mb_note || "",
+        mb_salary: record.mb_salary,
+        remaining: record.mb_money, // เหลือรับ ใช้ mb_money
+        collect: record.TOTAL1, // เรียกเก็บ ใช้ TOTAL1
+        collected: record.TOTAL2, // เก็บได้ ใช้ TOTAL2
+        NOTE: record.NOTE || "", // แก้ไขเป็น NOTE
       },
     });
+
+    // ถ้าเป็น batch mode ให้เพิ่มเข้า batchChanges
+    if (saveMode === "batch") {
+      setBatchChanges({
+        ...batchChanges,
+        [rowKey]: {
+          mb_salary: record.mb_salary,
+          remaining: record.mb_money,
+          collect: record.TOTAL1,
+          collected: record.TOTAL2,
+          NOTE: record.NOTE || "", // แก้ไขเป็น NOTE
+        },
+      });
+    }
   };
 
   // ฟังก์ชันยกเลิกการแก้ไข
@@ -476,50 +627,294 @@ const DataUpdate = ({ user }) => {
     delete newEditingData[rowKey];
     setEditingRows(newEditingRows);
     setEditingData(newEditingData);
+
+    // ถ้าเป็น batch mode ให้ลบออกจาก batchChanges ด้วย
+    if (saveMode === "batch") {
+      const newBatchChanges = { ...batchChanges };
+      delete newBatchChanges[rowKey];
+      setBatchChanges(newBatchChanges);
+      setHasUnsavedChanges(Object.keys(newBatchChanges).length > 0);
+    }
   };
 
-  // ฟังก์ชันบันทึกข้อมูล
+  // ฟังก์ชันบันทึกข้อมูล (แบบทันที)
   const saveEdit = async (record) => {
     const rowKey = record.mb_code;
     const editData = editingData[rowKey];
 
+    // Set saving state
+    setSavingRows((prev) => ({ ...prev, [rowKey]: true }));
+
     try {
-      // เรียก API เพื่อบันทึกข้อมูล
-      const updateData = {
-        mb_code: record.mb_code,
-        mb_money: editData.mb_money,
-        INVC_AIDAMNT: editData.INVC_AIDAMNT,
-        mb_note: editData.mb_note,
+      // เตรียมข้อมูลสำหรับ API
+      const apiData = {
+        userid: currentUser?.userid || currentUser,
+        PeriodID: record.PeriodID || 139, // ใช้จาก record หรือ default
+        data: [
+          {
+            NOTE: editData.NOTE || "",
+            TOTAL1: editData.collect || record.TOTAL1, // เพิ่ม TOTAL1 (เรียกเก็บ)
+            TOTAL2: editData.collected || record.TOTAL2,
+            mb_code: record.mb_code,
+            mb_money: editData.remaining || record.mb_money,
+            mb_salary: editData.mb_salary || record.mb_salary,
+          },
+        ],
       };
 
-      // TODO: เรียก API update จริง
-      console.log("Saving data:", updateData);
+      console.log("=== Save Edit Debug ===");
+      console.log("Original record:", record);
+      console.log("Edit data:", editData);
+      console.log("API payload:", JSON.stringify(apiData, null, 2));
+      console.log("======================");
 
-      // Mock API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const config = {
+        method: "post",
+        maxBodyLength: Infinity,
+        url: getApiUrl("/raidai2025Service/service1.svc/SaveRaidai"),
+        headers: {
+          "Content-Type": "application/json",
+          // ลบ Cookie header เพราะบราวเซอร์ไม่อนุญาต
+        },
+        data: apiData,
+      };
 
-      message.success("บันทึกข้อมูลสำเร็จ");
+      const response = await axios.request(config);
 
-      // ออกจาก edit mode
-      cancelEdit(record);
+      console.log("API Response:", response.data?.responseCode);
 
-      // Refresh ข้อมูลใหม่
-      fetchData();
+      if (response.data && response.data.responseCode === 200) {
+        message.success("บันทึกข้อมูลสำเร็จ");
+
+        console.log(
+          "Save successful, updating data optimistically for:",
+          rowKey
+        );
+
+        // Optimistic update: อัปเดต data state ทันที
+        if (data) {
+          const updatedData = data.map((item) => {
+            if (item.mb_code === record.mb_code) {
+              return {
+                ...item,
+                mb_salary: editData.mb_salary || item.mb_salary,
+                mb_money: editData.remaining || item.mb_money,
+                TOTAL1: editData.collect || item.TOTAL1,
+                TOTAL2: editData.collected || item.TOTAL2,
+                NOTE: editData.NOTE || item.NOTE,
+              };
+            }
+            return item;
+          });
+
+          setData(updatedData);
+          processDataStructure(updatedData);
+        }
+
+        // Clear edit state ทันที
+        const newEditingRows = { ...editingRows };
+        const newEditingData = { ...editingData };
+        delete newEditingRows[rowKey];
+        delete newEditingData[rowKey];
+        setEditingRows(newEditingRows);
+        setEditingData(newEditingData);
+
+        // Clear saving state
+        setSavingRows((prev) => {
+          const newState = { ...prev };
+          delete newState[rowKey];
+          return newState;
+        });
+
+        // Sync กับ server ใน background (ไม่บล็อก UI)
+        setTimeout(() => {
+          console.log("Background sync with server...");
+          fetchData(true).catch((err) => {
+            console.error("Background sync failed:", err);
+            // ถ้า sync ล้มเหลว อาจต้อง revert การเปลี่ยนแปลง
+          });
+        }, 200);
+      } else {
+        // Clear saving state on error
+        setSavingRows((prev) => {
+          const newState = { ...prev };
+          delete newState[rowKey];
+          return newState;
+        });
+        console.error("Save failed - API response:", response.data);
+        message.error(
+          `ไม่สามารถบันทึกข้อมูลได้: ${
+            response.data?.message || "Unknown error"
+          }`
+        );
+      }
     } catch (error) {
+      // Clear saving state on error
+      setSavingRows((prev) => {
+        const newState = { ...prev };
+        delete newState[rowKey];
+        return newState;
+      });
       console.error("Error saving data:", error);
       message.error("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
     }
   };
 
+  // Helper function เพื่อหา record ต้นฉบับจาก mb_code
+  const findRecordByMbCode = (mb_code) => {
+    if (!data) return null;
+    return data.find((record) => record.mb_code === mb_code);
+  };
+
+  // ฟังก์ชันบันทึกแบบ batch (ทั้งหมดพร้อมกัน)
+  const saveBatchChanges = async () => {
+    if (Object.keys(batchChanges).length === 0) {
+      message.warning("ไม่มีข้อมูลที่ต้องบันทึก");
+      return;
+    }
+
+    try {
+      // เตรียมข้อมูลสำหรับ API batch
+      const batchDataArray = Object.entries(batchChanges).map(
+        ([mb_code, editData]) => {
+          // หา record ต้นฉบับ
+          const originalRecord = findRecordByMbCode(mb_code);
+
+          return {
+            NOTE: editData.NOTE || "",
+            TOTAL1: editData.collect || originalRecord?.TOTAL1, // เพิ่ม TOTAL1 (เรียกเก็บ)
+            TOTAL2: editData.collected || originalRecord?.TOTAL2,
+            mb_code: mb_code,
+            mb_money: editData.remaining || originalRecord?.mb_money,
+            mb_salary: editData.mb_salary || originalRecord?.mb_salary,
+          };
+        }
+      );
+
+      const apiData = {
+        userid: currentUser?.userid || currentUser,
+        PeriodID: 139, // หรือ get จาก record แรก
+        data: batchDataArray,
+      };
+
+      console.log("Saving batch changes:", apiData);
+
+      const config = {
+        method: "post",
+        maxBodyLength: Infinity,
+        url: getApiUrl("/raidai2025Service/service1.svc/SaveRaidai"),
+        headers: {
+          "Content-Type": "application/json",
+          // ลบ Cookie header เพราะบราวเซอร์ไม่อนุญาต
+        },
+        data: apiData,
+      };
+
+      const response = await axios.request(config);
+
+      console.log("Batch API Response:", response.data);
+
+      if (response.data && response.data.responseCode === 200) {
+        message.success(`บันทึกข้อมูลสำเร็จ ${batchDataArray.length} รายการ`);
+
+        // Optimistic update: อัปเดต data state ทันที
+        if (data) {
+          const updatedData = data.map((item) => {
+            const batchChange = batchChanges[item.mb_code];
+            if (batchChange) {
+              return {
+                ...item,
+                mb_salary: batchChange.mb_salary || item.mb_salary,
+                mb_money: batchChange.remaining || item.mb_money,
+                TOTAL1: batchChange.collect || item.TOTAL1,
+                TOTAL2: batchChange.collected || item.TOTAL2,
+                NOTE: batchChange.NOTE || item.NOTE,
+              };
+            }
+            return item;
+          });
+
+          setData(updatedData);
+          processDataStructure(updatedData);
+        }
+
+        // Clear all changes
+        setBatchChanges({});
+        setHasUnsavedChanges(false);
+        setEditingRows({});
+        setEditingData({});
+
+        // Sync กับ server ใน background
+        setTimeout(() => {
+          fetchData(true).catch((err) => {
+            console.error("Background sync failed:", err);
+          });
+        }, 200);
+      } else {
+        console.error("Batch save failed - API response:", response.data);
+        message.error(
+          `ไม่สามารถบันทึกข้อมูลได้: ${
+            response.data?.message || "Unknown error"
+          }`
+        );
+      }
+    } catch (error) {
+      console.error("Error saving batch data:", error);
+      message.error("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
+    }
+  };
+
+  // ฟังก์ชันเปิด/ปิด batch mode
+  const toggleSaveMode = () => {
+    const newMode = saveMode === "auto" ? "batch" : "auto";
+    setSaveMode(newMode);
+
+    if (newMode === "auto" && Object.keys(batchChanges).length > 0) {
+      // ถามผู้ใช้ว่าต้องการบันทึกข้อมูลที่ pending อยู่หรือไม่
+      if (
+        window.confirm(
+          "มีข้อมูลที่ยังไม่ได้บันทึก ต้องการบันทึกก่อนเปลี่ยนโหมดหรือไม่?"
+        )
+      ) {
+        saveBatchChanges();
+      } else {
+        setBatchChanges({});
+        setHasUnsavedChanges(false);
+      }
+    }
+  };
+
+  // ฟังก์ชันยกเลิกการเปลี่ยนแปลงทั้งหมด (สำหรับ batch mode)
+  const cancelAllChanges = () => {
+    setBatchChanges({});
+    setHasUnsavedChanges(false);
+    setEditingRows({});
+    setEditingData({});
+    message.info("ยกเลิกการเปลี่ยนแปลงทั้งหมดแล้ว");
+  };
+
   // ฟังก์ชันอัพเดทข้อมูลที่กำลังแก้ไข
   const updateEditingData = (rowKey, field, value) => {
-    setEditingData({
+    const newEditingData = {
       ...editingData,
       [rowKey]: {
         ...editingData[rowKey],
         [field]: value,
       },
-    });
+    };
+    setEditingData(newEditingData);
+
+    // ถ้าเป็น batch mode ให้อัพเดท batchChanges ด้วย
+    if (saveMode === "batch") {
+      setBatchChanges({
+        ...batchChanges,
+        [rowKey]: {
+          ...batchChanges[rowKey],
+          [field]: value,
+        },
+      });
+      setHasUnsavedChanges(true);
+    }
   };
 
   if (loading) {
@@ -565,6 +960,49 @@ const DataUpdate = ({ user }) => {
 
   return (
     <div style={{ padding: "24px" }}>
+      {/* Control Panel */}
+      <Card style={{ marginBottom: "16px" }}>
+        <Row justify="space-between" align="middle">
+          <Col>
+            <Space>
+              <Text strong>โหมดการบันทึก:</Text>
+              <Button
+                type={saveMode === "auto" ? "primary" : "default"}
+                onClick={toggleSaveMode}
+                icon={saveMode === "auto" ? <SaveOutlined /> : <TeamOutlined />}
+              >
+                {saveMode === "auto" ? "บันทึกทันที" : "บันทึกครั้งเดียว"}
+              </Button>
+              {saveMode === "batch" && hasUnsavedChanges && (
+                <Tag color="orange">
+                  มีการเปลี่ยนแปลง {Object.keys(batchChanges).length} รายการ
+                </Tag>
+              )}
+            </Space>
+          </Col>
+          <Col>
+            {saveMode === "batch" && (
+              <Space>
+                <Button
+                  type="primary"
+                  onClick={saveBatchChanges}
+                  disabled={Object.keys(batchChanges).length === 0}
+                  loading={loading}
+                >
+                  บันทึกทั้งหมด ({Object.keys(batchChanges).length})
+                </Button>
+                <Button
+                  onClick={cancelAllChanges}
+                  disabled={Object.keys(batchChanges).length === 0}
+                >
+                  ยกเลิกทั้งหมด
+                </Button>
+              </Space>
+            )}
+          </Col>
+        </Row>
+      </Card>
+
       {/* Header */}
       <Card style={{ marginBottom: "24px" }}>
         {/* Grand Totals */}
@@ -577,7 +1015,7 @@ const DataUpdate = ({ user }) => {
             >
               <Statistic
                 title="เรียกเก็บรวม"
-                value={grandTotals.money}
+                value={grandTotals.total1}
                 precision={2}
                 valueStyle={{
                   color: "#1976d2",
@@ -615,7 +1053,7 @@ const DataUpdate = ({ user }) => {
             >
               <Statistic
                 title="เก็บได้รวม"
-                value={grandTotals.total1}
+                value={grandTotals.total2}
                 precision={2}
                 valueStyle={{
                   color: "#388e3c",
@@ -728,7 +1166,7 @@ const DataUpdate = ({ user }) => {
                         </div>
                         <Text strong>
                           {dept.totals.salary.toLocaleString("th-TH", {
-                            minimumFractionDigits: 0,
+                            minimumFractionDigits: 2,
                           })}
                         </Text>
                       </div>
@@ -751,8 +1189,8 @@ const DataUpdate = ({ user }) => {
                           เหลือรับ
                         </div>
                         <Text strong>
-                          {dept.totals.salary.toLocaleString("th-TH", {
-                            minimumFractionDigits: 0,
+                          {dept.totals.money.toLocaleString("th-TH", {
+                            minimumFractionDigits: 2,
                           })}
                         </Text>
                       </div>
@@ -775,7 +1213,7 @@ const DataUpdate = ({ user }) => {
                           เรียกเก็บ
                         </div>
                         <Text strong style={{ color: "#1890ff" }}>
-                          {dept.totals.money.toLocaleString("th-TH", {
+                          {dept.totals.total1.toLocaleString("th-TH", {
                             minimumFractionDigits: 2,
                           })}
                         </Text>
@@ -800,7 +1238,7 @@ const DataUpdate = ({ user }) => {
                         </div>
                         <Text strong style={{ color: "#fa8c16" }}>
                           {dept.totals.aidAmount.toLocaleString("th-TH", {
-                            minimumFractionDigits: 2,
+                            minimumFractionDigits: 0,
                           })}
                         </Text>
                       </div>
@@ -823,7 +1261,7 @@ const DataUpdate = ({ user }) => {
                           เก็บได้
                         </div>
                         <Text strong style={{ color: "#52c41a" }}>
-                          {dept.totals.total1.toLocaleString("th-TH", {
+                          {dept.totals.total2.toLocaleString("th-TH", {
                             minimumFractionDigits: 2,
                           })}
                         </Text>
@@ -950,7 +1388,7 @@ const DataUpdate = ({ user }) => {
                                   <Text strong>
                                     {section.totals.salary.toLocaleString(
                                       "th-TH",
-                                      { minimumFractionDigits: 0 }
+                                      { minimumFractionDigits: 2 }
                                     )}
                                   </Text>
                                 </div>
@@ -973,9 +1411,9 @@ const DataUpdate = ({ user }) => {
                                     เหลือรับ
                                   </div>
                                   <Text strong>
-                                    {section.totals.salary.toLocaleString(
+                                    {section.totals.money.toLocaleString(
                                       "th-TH",
-                                      { minimumFractionDigits: 0 }
+                                      { minimumFractionDigits: 2 }
                                     )}
                                   </Text>
                                 </div>
@@ -998,7 +1436,7 @@ const DataUpdate = ({ user }) => {
                                     เรียกเก็บ
                                   </div>
                                   <Text strong style={{ color: "#1890ff" }}>
-                                    {section.totals.money.toLocaleString(
+                                    {section.totals.total1.toLocaleString(
                                       "th-TH",
                                       { minimumFractionDigits: 2 }
                                     )}
@@ -1025,7 +1463,7 @@ const DataUpdate = ({ user }) => {
                                   <Text strong style={{ color: "#fa8c16" }}>
                                     {section.totals.aidAmount.toLocaleString(
                                       "th-TH",
-                                      { minimumFractionDigits: 2 }
+                                      { minimumFractionDigits: 0 }
                                     )}
                                   </Text>
                                 </div>
@@ -1048,7 +1486,7 @@ const DataUpdate = ({ user }) => {
                                     เก็บได้
                                   </div>
                                   <Text strong style={{ color: "#52c41a" }}>
-                                    {section.totals.total1.toLocaleString(
+                                    {section.totals.total2.toLocaleString(
                                       "th-TH",
                                       { minimumFractionDigits: 2 }
                                     )}
@@ -1205,7 +1643,7 @@ const DataUpdate = ({ user }) => {
                                 }}
                               >
                                 {section.totals.salary.toLocaleString("th-TH", {
-                                  minimumFractionDigits: 0,
+                                  minimumFractionDigits: 2,
                                 })}
                               </td>
 
@@ -1218,8 +1656,8 @@ const DataUpdate = ({ user }) => {
                                   borderBottom: "none",
                                 }}
                               >
-                                {section.totals.salary.toLocaleString("th-TH", {
-                                  minimumFractionDigits: 0,
+                                {section.totals.money.toLocaleString("th-TH", {
+                                  minimumFractionDigits: 2,
                                 })}
                               </td>
 
@@ -1233,7 +1671,7 @@ const DataUpdate = ({ user }) => {
                                   borderBottom: "none",
                                 }}
                               >
-                                {section.totals.money.toLocaleString("th-TH", {
+                                {section.totals.total1.toLocaleString("th-TH", {
                                   minimumFractionDigits: 2,
                                 })}
                               </td>
@@ -1251,7 +1689,7 @@ const DataUpdate = ({ user }) => {
                                 {section.totals.aidAmount.toLocaleString(
                                   "th-TH",
                                   {
-                                    minimumFractionDigits: 2,
+                                    minimumFractionDigits: 0,
                                   }
                                 )}
                               </td>
@@ -1266,7 +1704,7 @@ const DataUpdate = ({ user }) => {
                                   borderBottom: "none",
                                 }}
                               >
-                                {section.totals.total1.toLocaleString("th-TH", {
+                                {section.totals.total2.toLocaleString("th-TH", {
                                   minimumFractionDigits: 2,
                                 })}
                               </td>
