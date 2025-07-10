@@ -15,6 +15,7 @@ import {
   Input,
   InputNumber,
   Popconfirm,
+  Tooltip,
 } from "antd";
 import {
   TeamOutlined,
@@ -29,6 +30,77 @@ import {
 } from "@ant-design/icons";
 import { getApiUrl } from "@config/api";
 import axios from "axios";
+
+// CSS สำหรับ tooltip
+const tooltipStyles = `
+  .custom-note-tooltip {
+    z-index: 9999 !important;
+  }
+  
+  .custom-note-tooltip .ant-tooltip-inner {
+    background-color: #fff !important;
+    color: #333 !important;
+    border: 1px solid #d9d9d9 !important;
+    border-radius: 6px !important;
+    box-shadow: 0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 9px 28px 8px rgba(0, 0, 0, 0.05) !important;
+    padding: 8px 12px !important;
+    max-width: 350px !important;
+    white-space: pre-wrap !important;
+    word-break: break-word !important;
+    font-size: 13px !important;
+    line-height: 1.5 !important;
+    min-height: auto !important;
+  }
+  
+  .custom-note-tooltip .ant-tooltip-arrow {
+    display: block !important;
+  }
+  
+  .custom-note-tooltip .ant-tooltip-arrow::before,
+  .custom-note-tooltip .ant-tooltip-arrow::after {
+    background: #fff !important;
+    border: 1px solid #d9d9d9 !important;
+  }
+
+  /* ป้องกันการ scroll ของตาราง */
+  .ant-table-wrapper {
+    overflow: hidden !important;
+  }
+  
+  .ant-table-container {
+    overflow: hidden !important;
+  }
+  
+  .ant-table-content {
+    overflow: hidden !important;
+  }
+  
+  .ant-table-body {
+    overflow: hidden !important;
+  }
+  
+  .ant-table {
+    table-layout: fixed !important;
+    width: 100% !important;
+  }
+  
+  .ant-table-thead > tr > th,
+  .ant-table-tbody > tr > td {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+`;
+
+// เพิ่ม styles ให้กับ document
+if (typeof document !== "undefined") {
+  const styleElement = document.createElement("style");
+  styleElement.textContent = tooltipStyles;
+  if (!document.head.querySelector('style[data-tooltip="custom-note"]')) {
+    styleElement.setAttribute("data-tooltip", "custom-note");
+    document.head.appendChild(styleElement);
+  }
+}
 
 const { Title, Text } = Typography;
 
@@ -57,8 +129,15 @@ const DataUpdate = ({ user }) => {
   };
 
   const getDifferenceColor = (value) => {
-    if (value < 0) return "#ff4d4f"; // แดง (ลบ)
-    return "#52c41a"; // เขียว (ศูนย์และบวก)
+    const numValue = parseFloat(value) || 0;
+
+    if (numValue === 0 || Math.abs(numValue) < 0.01) {
+      return "#666666"; // สีดำอ่อน (เทาเข้ม) สำหรับ 0
+    }
+    if (numValue < 0) {
+      return "#ff4d4f"; // แดง (ลบ)
+    }
+    return "#52c41a"; // เขียว (บวก)
   };
 
   // Initialize user from props or localStorage
@@ -314,7 +393,7 @@ const DataUpdate = ({ user }) => {
       title: "เลขสมาชิก",
       dataIndex: "mb_code",
       key: "mb_code",
-      width: 120,
+      width: "10%",
       align: "center",
       render: (text) => <Text strong>{text}</Text>,
     },
@@ -322,13 +401,13 @@ const DataUpdate = ({ user }) => {
       title: "ชื่อ-สกุล",
       dataIndex: "fullname",
       key: "fullname",
-      width: 200,
+      width: "20%",
     },
     {
       title: "เงินเดือน",
       dataIndex: "mb_salary",
       key: "mb_salary",
-      width: 120,
+      width: "12%",
       align: "right",
       render: (value, record) => {
         const rowKey = record.mb_code;
@@ -364,7 +443,7 @@ const DataUpdate = ({ user }) => {
       title: "เหลือรับ",
       dataIndex: "mb_money", // แก้ไขเป็น mb_money
       key: "remaining",
-      width: 120,
+      width: "12%",
       align: "right",
       render: (value, record) => {
         const rowKey = record.mb_code;
@@ -400,7 +479,7 @@ const DataUpdate = ({ user }) => {
       title: "เรียกเก็บ",
       dataIndex: "TOTAL1", // แก้ไขเป็น TOTAL1
       key: "collect",
-      width: 120,
+      width: "12%",
       align: "right",
       render: (value, record) => {
         const rowKey = record.mb_code;
@@ -434,7 +513,7 @@ const DataUpdate = ({ user }) => {
       title: "เงินทำบุญ",
       dataIndex: "INVC_AIDAMNT",
       key: "INVC_AIDAMNT",
-      width: 120,
+      width: "10%",
       align: "right",
       render: (value) => (
         <Text style={{ color: "#fa8c16" }}>
@@ -446,7 +525,7 @@ const DataUpdate = ({ user }) => {
       title: "เก็บได้",
       dataIndex: "TOTAL2", // แก้ไขเป็น TOTAL2
       key: "collected",
-      width: 120,
+      width: "12%",
       align: "right",
       render: (value, record) => {
         const rowKey = record.mb_code;
@@ -489,7 +568,7 @@ const DataUpdate = ({ user }) => {
       title: "ผลต่าง",
       dataIndex: "difference",
       key: "difference",
-      width: 120,
+      width: "10%",
       align: "right",
       render: (value, record) => {
         const rowKey = record.mb_code;
@@ -520,7 +599,10 @@ const DataUpdate = ({ user }) => {
         const formatted = formatCurrency(calculatedDifference);
         return (
           <Text
-            style={{ color: getDifferenceColor(formatted), fontWeight: "600" }}
+            style={{
+              color: getDifferenceColor(calculatedDifference),
+              fontWeight: "600",
+            }}
           >
             {formatted.toFixed(2)}
           </Text>
@@ -531,7 +613,7 @@ const DataUpdate = ({ user }) => {
       title: "หมายเหตุ",
       dataIndex: "NOTE", // แก้ไขเป็น NOTE
       key: "NOTE",
-      width: 150,
+      width: "15%",
       render: (note, record) => {
         const rowKey = record.mb_code;
         const isEditing = editingRows[rowKey];
@@ -548,13 +630,59 @@ const DataUpdate = ({ user }) => {
           );
         }
 
-        return note || "-";
+        // ถ้าไม่มีหมายเหตุหรือว่าง
+        if (!note || note.trim() === "") {
+          return <span style={{ color: "#999", fontStyle: "italic" }}>-</span>;
+        }
+
+        // ถ้าข้อความสั้นกว่า 15 ตัวอักษร แสดงตรงๆ
+        if (note.length <= 15) {
+          return (
+            <span style={{ color: "#333", fontSize: "13px" }}>{note}</span>
+          );
+        }
+
+        // ถ้าข้อความยาว ให้ตัดและแสดง tooltip
+        return (
+          <Tooltip
+            title={
+              <div style={{ maxWidth: "350px", whiteSpace: "pre-wrap" }}>
+                {note}
+              </div>
+            }
+            placement="topLeft"
+            mouseEnterDelay={0.2}
+            mouseLeaveDelay={0.1}
+            overlayClassName="custom-note-tooltip"
+            trigger={["hover", "focus"]}
+            destroyTooltipOnHide={true}
+            fresh={true}
+          >
+            <div
+              style={{
+                cursor: "help",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                width: "100%",
+                color: "#1890ff",
+                borderBottom: "1px dotted #1890ff",
+                lineHeight: "1.4",
+                padding: "2px 0",
+                fontSize: "13px",
+                display: "block",
+              }}
+            >
+              {note.substring(0, 12)}...
+            </div>
+          </Tooltip>
+        );
       },
     },
     {
       title: "จัดการ",
       key: "action",
-      width: 120,
+      width: "9%",
       align: "center",
       render: (_, record) => {
         const rowKey = record.mb_code;
@@ -1199,9 +1327,7 @@ const DataUpdate = ({ user }) => {
                 value={formatCurrency(grandTotals.difference)}
                 precision={2}
                 valueStyle={{
-                  color: getDifferenceColor(
-                    formatCurrency(grandTotals.difference)
-                  ),
+                  color: getDifferenceColor(grandTotals.difference),
                   fontSize: "20px",
                   fontWeight: "bold",
                 }}
@@ -1705,53 +1831,67 @@ const DataUpdate = ({ user }) => {
                           )}
                         </div>
 
-                        <Table
-                          columns={memberColumns}
-                          dataSource={getFilteredData(
-                            section.members,
-                            `${dept.dept_code}-${section.sect_code}`
-                          )}
-                          rowKey="mb_code"
-                          scroll={{ x: 1320 }}
-                          pagination={{
-                            current:
-                              paginationSettings[
-                                `${dept.dept_code}-${section.sect_code}`
-                              ]?.current || 1,
-                            pageSize:
-                              paginationSettings[
-                                `${dept.dept_code}-${section.sect_code}`
-                              ]?.pageSize || 20,
-                            showSizeChanger: true,
-                            showQuickJumper: true,
-                            showTotal: (total, range) =>
-                              `แสดง ${range[0]}-${
-                                range[1]
-                              } จาก ${total} รายการ${
-                                searchTexts[
-                                  `${dept.dept_code}-${section.sect_code}`
-                                ]
-                                  ? " (ถูกกรอง)"
-                                  : ""
-                              }`,
-                            pageSizeOptions: ["10", "20", "50", "100", "200"],
-                            onChange: (page, pageSize) => {
-                              const key = `${dept.dept_code}-${section.sect_code}`;
-                              setPaginationSettings((prev) => ({
-                                ...prev,
-                                [key]: { current: page, pageSize },
-                              }));
-                            },
-                            onShowSizeChange: (current, size) => {
-                              const key = `${dept.dept_code}-${section.sect_code}`;
-                              setPaginationSettings((prev) => ({
-                                ...prev,
-                                [key]: { current: 1, pageSize: size },
-                              }));
-                            },
+                        <div
+                          style={{
+                            width: "100%",
+                            overflow: "hidden",
+                            border: "1px solid #f0f0f0",
+                            borderRadius: "6px",
                           }}
-                          size="small"
-                        />
+                        >
+                          <Table
+                            columns={memberColumns}
+                            dataSource={getFilteredData(
+                              section.members,
+                              `${dept.dept_code}-${section.sect_code}`
+                            )}
+                            rowKey="mb_code"
+                            scroll={false}
+                            tableLayout="fixed"
+                            style={{
+                              width: "100%",
+                              overflowX: "hidden",
+                            }}
+                            pagination={{
+                              current:
+                                paginationSettings[
+                                  `${dept.dept_code}-${section.sect_code}`
+                                ]?.current || 1,
+                              pageSize:
+                                paginationSettings[
+                                  `${dept.dept_code}-${section.sect_code}`
+                                ]?.pageSize || 20,
+                              showSizeChanger: true,
+                              showQuickJumper: true,
+                              showTotal: (total, range) =>
+                                `แสดง ${range[0]}-${
+                                  range[1]
+                                } จาก ${total} รายการ${
+                                  searchTexts[
+                                    `${dept.dept_code}-${section.sect_code}`
+                                  ]
+                                    ? " (ถูกกรอง)"
+                                    : ""
+                                }`,
+                              pageSizeOptions: ["10", "20", "50", "100", "200"],
+                              onChange: (page, pageSize) => {
+                                const key = `${dept.dept_code}-${section.sect_code}`;
+                                setPaginationSettings((prev) => ({
+                                  ...prev,
+                                  [key]: { current: page, pageSize },
+                                }));
+                              },
+                              onShowSizeChange: (current, size) => {
+                                const key = `${dept.dept_code}-${section.sect_code}`;
+                                setPaginationSettings((prev) => ({
+                                  ...prev,
+                                  [key]: { current: 1, pageSize: size },
+                                }));
+                              },
+                            }}
+                            size="small"
+                          />
+                        </div>
 
                         {/* Summary แยกออกมาข้างนอก Table - ใช้ table structure ให้ตรงกับ Ant Design */}
                         <div
@@ -2010,9 +2150,7 @@ const DataUpdate = ({ user }) => {
                                             filteredData
                                           );
                                         return getDifferenceColor(
-                                          formatCurrency(
-                                            filteredSummary.difference
-                                          )
+                                          filteredSummary.difference
                                         );
                                       }
                                       return getDifferenceColor(
