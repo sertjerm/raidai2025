@@ -76,6 +76,7 @@ function App() {
   return (
     <ConfigProvider theme={raidaiTheme}>
       <Router basename="/raidai2025">
+        {/* Virtual path ที่ user เห็นใน URL */}
         <AppLayout user={user} onLogout={handleLogout}>
           <Routes>
             <Route

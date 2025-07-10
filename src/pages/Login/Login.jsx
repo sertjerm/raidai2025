@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Form, Input, Button, Card, Typography, message } from "antd";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
 import { APP_CONFIG } from "@config/constants";
+import { getApiUrl } from "@config/api";
 import axios from "axios";
 
 const { Title } = Typography;
@@ -22,7 +23,7 @@ const Login = ({ onLogin }) => {
       const config = {
         method: "post",
         maxBodyLength: Infinity,
-        url: "/api/raidai2025Service/service1.svc/Login",
+        url: getApiUrl("/raidai2025Service/service1.svc/Login"),
         headers: {
           "Content-Type": "application/json",
         },

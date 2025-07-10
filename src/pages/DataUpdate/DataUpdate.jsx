@@ -26,6 +26,7 @@ import {
   SaveOutlined,
   CloseOutlined,
 } from "@ant-design/icons";
+import { getApiUrl } from "@config/api";
 import axios from "axios";
 
 const { Title, Text } = Typography;
@@ -87,7 +88,9 @@ const DataUpdate = ({ user }) => {
       const config = {
         method: "get",
         maxBodyLength: Infinity,
-        url: `/api/raidai2025Service/service1.svc/GetRaidaiByUser2025?userid=${userToUse}`,
+        url: getApiUrl(
+          `/raidai2025Service/service1.svc/GetRaidaiByUser2025?userid=${userToUse}`
+        ),
         headers: {
           Cookie: "ASP.NET_SessionId=jxsggjja23h31adphlkb15tl",
         },
@@ -155,8 +158,12 @@ const DataUpdate = ({ user }) => {
 
       // Calculate difference: total1 + aidAmount - total2
       // แก้ไขปัญหา -0.00 โดยใช้ Math.round และตรวจสอบค่าใกล้ 0
-      const rawDifference = (item.TOTAL1 || 0) + (item.INVC_AIDAMNT || 0) - (item.TOTAL2 || 0);
-      const difference = Math.abs(rawDifference) < 0.01 ? 0 : Math.round(rawDifference * 100) / 100;
+      const rawDifference =
+        (item.TOTAL1 || 0) + (item.INVC_AIDAMNT || 0) - (item.TOTAL2 || 0);
+      const difference =
+        Math.abs(rawDifference) < 0.01
+          ? 0
+          : Math.round(rawDifference * 100) / 100;
 
       // Add member to section
       const member = {
@@ -188,8 +195,8 @@ const DataUpdate = ({ user }) => {
     });
 
     // Sort members in each section by mb_code (เลขสมาชิก) เรียงจากน้อยไปมาก
-    Object.values(departments).forEach(dept => {
-      Object.values(dept.sections).forEach(section => {
+    Object.values(departments).forEach((dept) => {
+      Object.values(dept.sections).forEach((section) => {
         section.members.sort((a, b) => {
           const numA = parseInt(a.mb_code) || 0;
           const numB = parseInt(b.mb_code) || 0;
@@ -199,10 +206,10 @@ const DataUpdate = ({ user }) => {
     });
 
     // แก้ไขปัญหา -0.00 ใน totals โดยใช้ formatCurrency
-    Object.values(departments).forEach(dept => {
+    Object.values(departments).forEach((dept) => {
       dept.totals.difference = formatCurrency(dept.totals.difference);
-      
-      Object.values(dept.sections).forEach(section => {
+
+      Object.values(dept.sections).forEach((section) => {
         section.totals.difference = formatCurrency(section.totals.difference);
       });
     });
@@ -373,7 +380,9 @@ const DataUpdate = ({ user }) => {
       render: (value) => {
         const formatted = formatCurrency(value);
         return (
-          <Text style={{ color: getDifferenceColor(formatted), fontWeight: "600" }}>
+          <Text
+            style={{ color: getDifferenceColor(formatted), fontWeight: "600" }}
+          >
             {formatted.toFixed(2)}
           </Text>
         );
@@ -628,7 +637,9 @@ const DataUpdate = ({ user }) => {
                 value={formatCurrency(grandTotals.difference)}
                 precision={2}
                 valueStyle={{
-                  color: getDifferenceColor(formatCurrency(grandTotals.difference)),
+                  color: getDifferenceColor(
+                    formatCurrency(grandTotals.difference)
+                  ),
                   fontSize: "20px",
                   fontWeight: "bold",
                 }}
@@ -1064,10 +1075,14 @@ const DataUpdate = ({ user }) => {
                                   <Text
                                     strong
                                     style={{
-                                      color: getDifferenceColor(section.totals.difference),
+                                      color: getDifferenceColor(
+                                        section.totals.difference
+                                      ),
                                     }}
                                   >
-                                    {formatCurrency(section.totals.difference).toFixed(2)}
+                                    {formatCurrency(
+                                      section.totals.difference
+                                    ).toFixed(2)}
                                   </Text>
                                 </div>
 
@@ -1262,11 +1277,15 @@ const DataUpdate = ({ user }) => {
                                   padding: "8px 8px",
                                   textAlign: "right",
                                   fontWeight: "600",
-                                  color: getDifferenceColor(section.totals.difference),
+                                  color: getDifferenceColor(
+                                    section.totals.difference
+                                  ),
                                   borderBottom: "none",
                                 }}
                               >
-                                {formatCurrency(section.totals.difference).toFixed(2)}
+                                {formatCurrency(
+                                  section.totals.difference
+                                ).toFixed(2)}
                               </td>
 
                               {/* หมายเหตุ */}

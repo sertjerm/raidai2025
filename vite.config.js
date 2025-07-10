@@ -4,7 +4,7 @@ import { resolve } from "path";
 
 export default defineConfig({
   plugins: [react()],
-  base: "/raidai2025/", // ตั้งค่า base path สำหรับ subdirectory
+  base: "/raidai2025/", // URL path ที่ user เข้าถึง (virtual path)
   resolve: {
     alias: {
       "@": resolve(__dirname, "src"),
