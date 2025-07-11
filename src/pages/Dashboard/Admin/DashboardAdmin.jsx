@@ -10,18 +10,26 @@ import {
   Select,
   Space,
   Tag,
+  Spin,
+  message,
+  Tooltip,
   Badge,
   Typography,
-  Tooltip,
-  Alert,
   Progress,
-  message,
+  Alert,
+  Divider,
 } from "antd";
 import {
-  SearchOutlined,
-  FilterOutlined,
+  UserOutlined,
   DollarOutlined,
   CheckCircleOutlined,
+  CloseCircleOutlined,
+  SearchOutlined,
+  ReloadOutlined,
+  ExportOutlined,
+  FilterOutlined,
+  TrophyOutlined,
+  WarningOutlined,
   InfoCircleOutlined,
 } from "@ant-design/icons";
 import { getApiUrl } from "@config/api";
@@ -40,23 +48,26 @@ import {
 } from "@config/constants";
 import axios from "axios";
 
-// เพิ่ม styles ให้กับ document
+const { Title, Text } = Typography;
+const { Option } = Select;
+
+// Add custom styles to document
 if (typeof document !== "undefined") {
   const styleElement = document.createElement("style");
   styleElement.textContent = `
     ${TOOLTIP_STYLES}
     ${TABLE_SHARED_STYLES}
     ${CARD_SHARED_STYLES}
-    .dashboard-stat-card {
+    .admin-dashboard-stat-card {
       position: relative;
       overflow: hidden;
       transition: all 0.3s ease !important;
     }
-    .dashboard-stat-card:hover {
+    .admin-dashboard-stat-card:hover {
       transform: translateY(-2px) !important;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
     }
-    .dashboard-stat-card::after {
+    .admin-dashboard-stat-card::after {
       content: '';
       position: absolute;
       top: 0;
@@ -89,16 +100,13 @@ if (typeof document !== "undefined") {
       margin-top: 12px;
     }
   `;
-  if (!document.head.querySelector('style[data-dashboard="custom"]')) {
-    styleElement.setAttribute("data-dashboard", "custom");
+  if (!document.head.querySelector('style[data-admin-dashboard="custom"]')) {
+    styleElement.setAttribute("data-admin-dashboard", "custom");
     document.head.appendChild(styleElement);
   }
 }
 
-const { Title, Text } = Typography;
-const { Option } = Select;
-
-const Dashboard = ({ user }) => {
+const DashboardAdmin = ({ user }) => {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
@@ -131,8 +139,9 @@ const Dashboard = ({ user }) => {
     setLoading(true);
     try {
       const response = await axios.get(
-        getApiUrl("/raidai2025Service/service1.svc/GetRaidai2025") +
-          `?userid=${user?.userid || APP_CONFIG.defaultUser}`,
+        `${getApiUrl(
+          "/raidai2025Service/service1.svc/GetRaidaiAdmin2025"
+        )}?userid=${user?.userid || APP_CONFIG.defaultUser}`,
         { withCredentials: true }
       );
 
@@ -256,7 +265,11 @@ const Dashboard = ({ user }) => {
       key: "dept_name",
       ellipsis: true,
       render: (text) => (
-        <Tooltip title={text} placement="topLeft" className="custom-tooltip">
+        <Tooltip
+          title={text}
+          destroyOnHidden={true}
+          classNames={{ root: "custom-tooltip" }}
+        >
           <span>{text}</span>
         </Tooltip>
       ),
@@ -303,7 +316,7 @@ const Dashboard = ({ user }) => {
       {/* Header */}
       <div style={{ marginBottom: 24 }}>
         <Title level={4} style={{ margin: 0, color: "#1f1f1f" }}>
-          ภาพรวมการรับเงินปันผล
+          ภาพรวมการรับเงินปันผล (ผู้ดูแลระบบ)
         </Title>
         <Text type="secondary">
           ระบบบริหารจัดการข้อมูลการเก็บเงินปันผล ประจำปี {APP_CONFIG.year}
@@ -314,11 +327,11 @@ const Dashboard = ({ user }) => {
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24} sm={12} md={6}>
           <Card
-            className="dashboard-stat-card"
+            className="admin-dashboard-stat-card"
             style={{
               ...CARD_STYLES.BASE,
               ...CARD_STYLES.STAT_CARD,
-              background: GRADIENT_STYLES.CARD.BLUE,
+              background: GRADIENT_STYLES.CARD.GOLD,
             }}
           >
             <div>
@@ -335,11 +348,11 @@ const Dashboard = ({ user }) => {
         </Col>
         <Col xs={24} sm={12} md={6}>
           <Card
-            className="dashboard-stat-card"
+            className="admin-dashboard-stat-card"
             style={{
               ...CARD_STYLES.BASE,
               ...CARD_STYLES.STAT_CARD,
-              background: GRADIENT_STYLES.CARD.YELLOW,
+              background: GRADIENT_STYLES.CARD.PURPLE,
             }}
           >
             <div>
@@ -355,7 +368,7 @@ const Dashboard = ({ user }) => {
         </Col>
         <Col xs={24} sm={12} md={6}>
           <Card
-            className="dashboard-stat-card"
+            className="admin-dashboard-stat-card"
             style={{
               ...CARD_STYLES.BASE,
               ...CARD_STYLES.STAT_CARD,
@@ -379,7 +392,7 @@ const Dashboard = ({ user }) => {
         </Col>
         <Col xs={24} sm={12} md={6}>
           <Card
-            className="dashboard-stat-card"
+            className="admin-dashboard-stat-card"
             style={{
               ...CARD_STYLES.BASE,
               ...CARD_STYLES.STAT_CARD,
@@ -488,4 +501,4 @@ const Dashboard = ({ user }) => {
   );
 };
 
-export default Dashboard;
+export default DashboardAdmin;

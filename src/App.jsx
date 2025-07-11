@@ -10,7 +10,7 @@ import { LogoutOutlined } from "@ant-design/icons";
 import { raidaiTheme } from "@config/theme";
 import { ROUTES, APP_CONFIG } from "@config/constants";
 import Login from "@pages/Login";
-import Dashboard from "@pages/Dashboard";
+import { Dashboard, DashboardAdmin } from "@pages/Dashboard";
 import DataManagement from "@pages/DataManagement";
 import DataUpdate from "@pages/DataUpdate";
 import { AppLayout } from "@components/Layout";
@@ -87,6 +87,11 @@ function App() {
             <Route
               path={ROUTES.DASHBOARD}
               element={<Dashboard user={user} />}
+            />
+
+            <Route
+              path={ROUTES.DASHBOARD_ADMIN}
+              element={<DashboardAdmin user={user} />}
             />
 
             <Route

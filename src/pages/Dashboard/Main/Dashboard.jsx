@@ -131,8 +131,9 @@ const Dashboard = ({ user }) => {
     setLoading(true);
     try {
       const response = await axios.get(
-        getApiUrl("/raidai2025Service/service1.svc/GetRaidai2025") +
-          `?userid=${user?.userid || APP_CONFIG.defaultUser}`,
+        `${getApiUrl()}/raidai2025Service/service1.svc/GetRaidaiAdmin2025?userid=${
+          user?.userid || APP_CONFIG.defaultUser
+        }`,
         { withCredentials: true }
       );
 
@@ -256,7 +257,11 @@ const Dashboard = ({ user }) => {
       key: "dept_name",
       ellipsis: true,
       render: (text) => (
-        <Tooltip title={text} placement="topLeft" className="custom-tooltip">
+        <Tooltip
+          title={text}
+          destroyOnHidden={true}
+          classNames={{ root: "custom-tooltip" }}
+        >
           <span>{text}</span>
         </Tooltip>
       ),

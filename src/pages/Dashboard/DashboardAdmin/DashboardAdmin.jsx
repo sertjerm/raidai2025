@@ -18,11 +18,15 @@ import {
   message,
 } from "antd";
 import {
-  SearchOutlined,
-  FilterOutlined,
+  TeamOutlined,
   DollarOutlined,
   CheckCircleOutlined,
-  InfoCircleOutlined,
+  WarningOutlined,
+  SyncOutlined,
+  SearchOutlined,
+  DownloadOutlined,
+  FilterOutlined,
+  BankOutlined,
 } from "@ant-design/icons";
 import { getApiUrl } from "@config/api";
 import {
@@ -34,63 +38,15 @@ import {
   STATUS_OPTIONS,
   TABLE_PAGINATION_CONFIG,
   APP_CONFIG,
-  PASTEL_COLORS,
-  GRADIENT_STYLES,
-  CARD_STYLES,
 } from "@config/constants";
 import axios from "axios";
 
 // เพิ่ม styles ให้กับ document
 if (typeof document !== "undefined") {
   const styleElement = document.createElement("style");
-  styleElement.textContent = `
-    ${TOOLTIP_STYLES}
-    ${TABLE_SHARED_STYLES}
-    ${CARD_SHARED_STYLES}
-    .dashboard-stat-card {
-      position: relative;
-      overflow: hidden;
-      transition: all 0.3s ease !important;
-    }
-    .dashboard-stat-card:hover {
-      transform: translateY(-2px) !important;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
-    }
-    .dashboard-stat-card::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      left: 0;
-      background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 100%);
-      pointer-events: none;
-    }
-    .stat-title {
-      font-size: 14px;
-      color: rgba(0, 0, 0, 0.65);
-      margin-bottom: 12px;
-    }
-    .stat-value {
-      font-size: 28px;
-      font-weight: 600;
-      color: rgba(0, 0, 0, 0.85);
-      line-height: 1.2;
-    }
-    .stat-footer {
-      margin-top: 12px;
-      font-size: 13px;
-      color: rgba(0, 0, 0, 0.45);
-    }
-    .ant-card {
-      border-radius: 16px !important;
-    }
-    .ant-progress {
-      margin-top: 12px;
-    }
-  `;
-  if (!document.head.querySelector('style[data-dashboard="custom"]')) {
-    styleElement.setAttribute("data-dashboard", "custom");
+  styleElement.textContent = `${TOOLTIP_STYLES}${TABLE_SHARED_STYLES}${CARD_SHARED_STYLES}`;
+  if (!document.head.querySelector('style[data-tooltip="custom-note"]')) {
+    styleElement.setAttribute("data-tooltip", "custom-note");
     document.head.appendChild(styleElement);
   }
 }
@@ -98,7 +54,26 @@ if (typeof document !== "undefined") {
 const { Title, Text } = Typography;
 const { Option } = Select;
 
-const Dashboard = ({ user }) => {
+// Helper functions
+const formatCurrency = (value) => {
+  if (value === null || value === undefined || isNaN(value)) return 0;
+  const rounded = Math.round(value * 100) / 100;
+  return Math.abs(rounded) < 0.01 ? 0 : rounded;
+};
+
+const getDifferenceColor = (value) => {
+  const numValue = parseFloat(value) || 0;
+  if (numValue === 0 || Math.abs(numValue) < 0.01) {
+    return STATUS_COLORS.NEUTRAL;
+  }
+  return numValue < 0 ? STATUS_COLORS.ERROR : STATUS_COLORS.SUCCESS;
+};
+
+const getStatusColor = (status) => {
+  return status === 1 ? STATUS_COLORS.SUCCESS : STATUS_COLORS.WARNING;
+};
+
+const DashboardAdmin = ({ user }) => {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
@@ -112,27 +87,14 @@ const Dashboard = ({ user }) => {
     uncollectedAmount: 0,
   });
 
-  // Helper functions
-  const formatCurrency = (value) => {
-    if (value === null || value === undefined || isNaN(value)) return 0;
-    const rounded = Math.round(value * 100) / 100;
-    return Math.abs(rounded) < 0.01 ? 0 : rounded;
-  };
-
-  const formatNumber = (value) => {
-    return new Intl.NumberFormat("th-TH", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(value);
-  };
-
   // Fetch data
   const fetchData = async () => {
     setLoading(true);
     try {
       const response = await axios.get(
-        getApiUrl("/raidai2025Service/service1.svc/GetRaidai2025") +
-          `?userid=${user?.userid || APP_CONFIG.defaultUser}`,
+        `${getApiUrl()}/raidai2025Service/service1.svc/GetRaidaiAdmin2025?userid=${
+          user?.userid || "021000"
+        }`,
         { withCredentials: true }
       );
 
@@ -208,7 +170,44 @@ const Dashboard = ({ user }) => {
     handleFilter();
   }, [searchText, departmentFilter, statusFilter]);
 
-  // Get unique departments
+  // Export to CSV
+  const handleExport = () => {
+    const csvContent = [
+      [
+        "รหัสสมาชิก",
+        "ชื่อ-สกุล",
+        "หน่วยงาน",
+        "แผนก",
+        "ยอดเรียกเก็บ",
+        "ยอดชำระ",
+        "คงเหลือ",
+        "สถานะ",
+      ].join(","),
+      ...filteredData.map((item) =>
+        [
+          item.mb_code,
+          item.fullname,
+          item.dept_name,
+          item.sect_name,
+          formatCurrency(item.total1),
+          formatCurrency(item.total2),
+          Math.abs(formatCurrency(item.diff)),
+          item.ConfirmStatus === 1 ? "ยืนยันแล้ว" : "รอยืนยัน",
+        ].join(",")
+      ),
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `รายงานเงินปันผล_${
+      new Date().toISOString().split("T")[0]
+    }.csv`;
+    link.click();
+    message.success("ส่งออกข้อมูลสำเร็จ");
+  };
+
+  // Get unique departments for filter
   const departments = [
     ...new Set(
       data.map((item) => ({
@@ -218,14 +217,9 @@ const Dashboard = ({ user }) => {
     ),
   ].sort((a, b) => a.name.localeCompare(b.name));
 
-  // Calculate rates
+  // Calculate completion rate
   const collectionRate = stats.totalAmount
     ? (stats.collectedAmount / stats.totalAmount) * 100
-    : 0;
-
-  const confirmedCount = data.filter((item) => item.ConfirmStatus === 1).length;
-  const confirmationRate = data.length
-    ? (confirmedCount / data.length) * 100
     : 0;
 
   // Table columns
@@ -236,10 +230,7 @@ const Dashboard = ({ user }) => {
       key: "mb_code",
       width: 120,
       render: (text) => (
-        <Tag
-          color={PASTEL_COLORS.BLUE.DEFAULT}
-          style={{ fontWeight: 500, borderRadius: "4px" }}
-        >
+        <Tag color={STATUS_COLORS.PRIMARY} style={{ fontWeight: 500 }}>
           {text}
         </Tag>
       ),
@@ -248,7 +239,7 @@ const Dashboard = ({ user }) => {
       title: "ชื่อ-สกุล",
       dataIndex: "fullname",
       key: "fullname",
-      render: (text) => <Text>{text}</Text>,
+      render: (text) => <Text style={{ color: "#262626" }}>{text}</Text>,
     },
     {
       title: "หน่วยงาน",
@@ -256,7 +247,7 @@ const Dashboard = ({ user }) => {
       key: "dept_name",
       ellipsis: true,
       render: (text) => (
-        <Tooltip title={text} placement="topLeft" className="custom-tooltip">
+        <Tooltip title={text}>
           <span>{text}</span>
         </Tooltip>
       ),
@@ -266,14 +257,35 @@ const Dashboard = ({ user }) => {
       dataIndex: "total1",
       key: "total1",
       align: "right",
-      render: (value) => <Text>฿{formatNumber(formatCurrency(value))}</Text>,
+      render: (value) => (
+        <Text>
+          ฿
+          {formatCurrency(value)?.toLocaleString("th-TH", {
+            minimumFractionDigits: 2,
+          })}
+        </Text>
+      ),
     },
     {
       title: "ยอดชำระ",
       dataIndex: "total2",
       key: "total2",
       align: "right",
-      render: (value) => <Text>฿{formatNumber(formatCurrency(value))}</Text>,
+      render: (value) => (
+        <Text
+          style={{
+            color:
+              formatCurrency(value) > 0
+                ? STATUS_COLORS.SUCCESS
+                : STATUS_COLORS.NEUTRAL,
+          }}
+        >
+          ฿
+          {formatCurrency(value)?.toLocaleString("th-TH", {
+            minimumFractionDigits: 2,
+          })}
+        </Text>
+      ),
     },
     {
       title: "คงเหลือ",
@@ -281,7 +293,12 @@ const Dashboard = ({ user }) => {
       key: "diff",
       align: "right",
       render: (value) => (
-        <Text>฿{formatNumber(Math.abs(formatCurrency(value)))}</Text>
+        <Text style={{ color: getDifferenceColor(value) }}>
+          ฿
+          {Math.abs(formatCurrency(value))?.toLocaleString("th-TH", {
+            minimumFractionDigits: 2,
+          })}
+        </Text>
       ),
     },
     {
@@ -292,7 +309,11 @@ const Dashboard = ({ user }) => {
       render: (status) => (
         <Badge
           status={status === 1 ? "success" : "warning"}
-          text={status === 1 ? "ยืนยันแล้ว" : "รอยืนยัน"}
+          text={
+            <Text style={{ color: getStatusColor(status) }}>
+              {status === 1 ? "ยืนยันแล้ว" : "รอยืนยัน"}
+            </Text>
+          }
         />
       ),
     },
@@ -302,7 +323,7 @@ const Dashboard = ({ user }) => {
     <div style={{ padding: "24px" }}>
       {/* Header */}
       <div style={{ marginBottom: 24 }}>
-        <Title level={4} style={{ margin: 0, color: "#1f1f1f" }}>
+        <Title level={4} style={{ margin: 0 }}>
           ภาพรวมการรับเงินปันผล
         </Title>
         <Text type="secondary">
@@ -313,98 +334,82 @@ const Dashboard = ({ user }) => {
       {/* Statistics Cards */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24} sm={12} md={6}>
-          <Card
-            className="dashboard-stat-card"
-            style={{
-              ...CARD_STYLES.BASE,
-              ...CARD_STYLES.STAT_CARD,
-              background: GRADIENT_STYLES.CARD.BLUE,
-            }}
-          >
-            <div>
-              <div className="stat-title">สมาชิกทั้งหมด</div>
-              <div className="stat-value">
-                {stats.totalMembers.toLocaleString()} คน
-              </div>
-            </div>
-            <div className="stat-footer">
-              ยืนยันแล้ว {confirmedCount.toLocaleString()} คน (
-              {confirmationRate.toFixed(1)}%)
-            </div>
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={6}>
-          <Card
-            className="dashboard-stat-card"
-            style={{
-              ...CARD_STYLES.BASE,
-              ...CARD_STYLES.STAT_CARD,
-              background: GRADIENT_STYLES.CARD.YELLOW,
-            }}
-          >
-            <div>
-              <div className="stat-title">ยอดเรียกเก็บรวม</div>
-              <div className="stat-value">
-                ฿{formatNumber(stats.totalAmount)}
-              </div>
-            </div>
-            <div className="stat-footer">
-              จำนวน {departments.length.toLocaleString()} หน่วยงาน
-            </div>
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={6}>
-          <Card
-            className="dashboard-stat-card"
-            style={{
-              ...CARD_STYLES.BASE,
-              ...CARD_STYLES.STAT_CARD,
-              background: GRADIENT_STYLES.CARD.GREEN,
-            }}
-          >
-            <div>
-              <div className="stat-title">เก็บได้แล้ว</div>
-              <div className="stat-value">
-                ฿{formatNumber(stats.collectedAmount)}
-              </div>
-            </div>
-            <Progress
-              percent={collectionRate}
-              strokeColor={PASTEL_COLORS.GREEN.DEEP}
-              trailColor={PASTEL_COLORS.GREEN.LIGHT}
-              size="small"
-              format={(percent) => `${percent.toFixed(1)}%`}
+          <Card>
+            <Statistic
+              title={
+                <Space>
+                  <TeamOutlined style={{ color: STATUS_COLORS.PRIMARY }} />
+                  <Text>จำนวนสมาชิก</Text>
+                </Space>
+              }
+              value={stats.totalMembers}
+              suffix="คน"
             />
           </Card>
         </Col>
         <Col xs={24} sm={12} md={6}>
-          <Card
-            className="dashboard-stat-card"
-            style={{
-              ...CARD_STYLES.BASE,
-              ...CARD_STYLES.STAT_CARD,
-              background: GRADIENT_STYLES.CARD.RED,
-            }}
-          >
-            <div>
-              <div className="stat-title">ยังไม่ได้เก็บ</div>
-              <div className="stat-value">
-                ฿{formatNumber(stats.uncollectedAmount)}
-              </div>
-            </div>
+          <Card>
+            <Statistic
+              title={
+                <Space>
+                  <BankOutlined style={{ color: STATUS_COLORS.PRIMARY }} />
+                  <Text>ยอดเรียกเก็บรวม</Text>
+                </Space>
+              }
+              value={stats.totalAmount}
+              precision={2}
+              prefix="฿"
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={6}>
+          <Card>
+            <Statistic
+              title={
+                <Space>
+                  <CheckCircleOutlined
+                    style={{ color: STATUS_COLORS.SUCCESS }}
+                  />
+                  <Text>เก็บได้แล้ว</Text>
+                </Space>
+              }
+              value={stats.collectedAmount}
+              precision={2}
+              prefix="฿"
+            />
             <Progress
-              percent={100 - collectionRate}
-              strokeColor={PASTEL_COLORS.RED.DEEP}
-              trailColor={PASTEL_COLORS.RED.LIGHT}
+              percent={collectionRate.toFixed(1)}
+              strokeColor={STATUS_COLORS.SUCCESS}
               size="small"
-              format={(percent) => `${percent.toFixed(1)}%`}
+              style={{ marginTop: 8 }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={6}>
+          <Card>
+            <Statistic
+              title={
+                <Space>
+                  <WarningOutlined style={{ color: STATUS_COLORS.ERROR }} />
+                  <Text>ยังไม่ได้เก็บ</Text>
+                </Space>
+              }
+              value={stats.uncollectedAmount}
+              precision={2}
+              prefix="฿"
+            />
+            <Progress
+              percent={(100 - collectionRate).toFixed(1)}
+              strokeColor={STATUS_COLORS.ERROR}
+              size="small"
+              style={{ marginTop: 8 }}
             />
           </Card>
         </Col>
       </Row>
 
       {/* Filters */}
-      <Card style={{ ...CARD_STYLES.BASE, marginBottom: 24 }}>
+      <Card style={{ marginBottom: 24 }}>
         <Row gutter={[16, 16]} align="middle">
           <Col xs={24} sm={8} md={6}>
             <Input
@@ -412,9 +417,8 @@ const Dashboard = ({ user }) => {
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
               prefix={
-                <SearchOutlined style={{ color: PASTEL_COLORS.BLUE.DEEP }} />
+                <SearchOutlined style={{ color: STATUS_COLORS.PRIMARY }} />
               }
-              style={{ borderRadius: "6px" }}
             />
           </Col>
           <Col xs={24} sm={8} md={6}>
@@ -446,6 +450,25 @@ const Dashboard = ({ user }) => {
               ))}
             </Select>
           </Col>
+          <Col xs={24} md={6} style={{ textAlign: "right" }}>
+            <Space>
+              <Tooltip title="รีเฟรชข้อมูล">
+                <Button
+                  type="primary"
+                  icon={<SyncOutlined />}
+                  onClick={fetchData}
+                  loading={loading}
+                >
+                  รีเฟรช
+                </Button>
+              </Tooltip>
+              <Tooltip title="ส่งออกข้อมูล">
+                <Button icon={<DownloadOutlined />} onClick={handleExport}>
+                  ส่งออก CSV
+                </Button>
+              </Tooltip>
+            </Space>
+          </Col>
         </Row>
       </Card>
 
@@ -456,19 +479,18 @@ const Dashboard = ({ user }) => {
             <Space>
               <FilterOutlined />
               <span>
-                กำลังแสดง {filteredData.length.toLocaleString()} จาก{" "}
-                {data.length.toLocaleString()} รายการ
+                กำลังแสดง {filteredData.length} จาก {data.length} รายการ
               </span>
             </Space>
           }
           type="info"
           showIcon={false}
-          style={{ marginBottom: 24, borderRadius: "8px" }}
+          style={{ marginBottom: 24 }}
         />
       )}
 
       {/* Table */}
-      <Card style={{ ...CARD_STYLES.BASE }}>
+      <Card>
         <Table
           columns={columns}
           dataSource={filteredData}
@@ -488,4 +510,4 @@ const Dashboard = ({ user }) => {
   );
 };
 
-export default Dashboard;
+export default DashboardAdmin;

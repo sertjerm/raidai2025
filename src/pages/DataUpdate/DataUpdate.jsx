@@ -701,10 +701,9 @@ const DataUpdate = ({ user }) => {
             placement="topLeft"
             mouseEnterDelay={0.2}
             mouseLeaveDelay={0.1}
-            overlayClassName="custom-note-tooltip"
+            classNames={{ root: "custom-note-tooltip" }}
             trigger={["hover", "focus"]}
-            destroyTooltipOnHide={true}
-            fresh={true}
+            destroyOnHidden={true}
           >
             <InfoCircleOutlined
               style={{

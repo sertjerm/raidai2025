@@ -18,12 +18,50 @@ import {
   UserOutlined,
   LogoutOutlined,
   HomeOutlined,
+  FundOutlined,
 } from "@ant-design/icons";
 import { ROUTES, APP_CONFIG } from "@config/constants";
 import AppHeader from "./AppHeader";
 
 const { Header, Content, Footer, Sider } = Layout;
 const { Title, Text } = Typography;
+
+// Add styles to document
+const menuStyles = `
+  .custom-sidebar-menu.ant-menu.ant-menu-dark {
+    background: transparent;
+  }
+
+  .custom-sidebar-menu.ant-menu.ant-menu-dark .ant-menu-item-selected {
+    background: rgba(255, 255, 255, 0.15) !important;
+  }
+
+  .custom-sidebar-menu.ant-menu.ant-menu-dark .ant-menu-item:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  .custom-sidebar-menu.ant-menu.ant-menu-dark .ant-menu-item {
+    margin: 4px 8px;
+    border-radius: 6px;
+  }
+
+  .custom-sidebar-menu.ant-menu-dark .ant-menu-item .anticon {
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  .custom-sidebar-menu.ant-menu-dark .ant-menu-item-selected .anticon {
+    color: #ffffff;
+  }
+`;
+
+if (typeof document !== "undefined") {
+  const styleElement = document.createElement("style");
+  styleElement.textContent = menuStyles;
+  if (!document.head.querySelector('style[data-menu="custom-sidebar"]')) {
+    styleElement.setAttribute("data-menu", "custom-sidebar");
+    document.head.appendChild(styleElement);
+  }
+}
 
 // Main Layout Component for logged-in users
 function AppLayout({ user, onLogout, children }) {
@@ -37,6 +75,11 @@ function AppLayout({ user, onLogout, children }) {
       key: ROUTES.DASHBOARD,
       icon: <DashboardOutlined />,
       label: "หน้าแรก",
+    },
+    {
+      key: ROUTES.DASHBOARD_ADMIN,
+      icon: <FundOutlined />,
+      label: "แดชบอร์ดผู้ดูแล",
     },
     {
       key: ROUTES.DATA_MANAGEMENT,
@@ -55,30 +98,46 @@ function AppLayout({ user, onLogout, children }) {
     },
   ];
 
-  // Get breadcrumb based on current path
+  // Get breadcrumb items based on current route
   const getBreadcrumb = () => {
-    const breadcrumbMap = {
-      [ROUTES.DATA_UPDATE]: [
-        { title: <HomeOutlined /> },
-        { title: "ปรับปรุงข้อมูล" },
-      ],
-      [ROUTES.DASHBOARD]: [
-        { title: <HomeOutlined /> },
-        { title: "ปรับปรุงข้อมูล" },
-        { title: "หน้าแรก" },
-      ],
-      [ROUTES.DATA_MANAGEMENT]: [
-        { title: <HomeOutlined /> },
-        { title: "ปรับปรุงข้อมูล" },
-        { title: "ข้อมูลหลัก" },
-      ],
-      [ROUTES.SETTINGS]: [
-        { title: <HomeOutlined /> },
-        { title: "ปรับปรุงข้อมูล" },
-        { title: "ตั้งค่า" },
-      ],
-    };
-    return breadcrumbMap[location.pathname] || [{ title: <HomeOutlined /> }];
+    const path = location.pathname;
+    const breadcrumb = [
+      {
+        title: <HomeOutlined />,
+      },
+    ];
+
+    switch (path) {
+      case ROUTES.DASHBOARD:
+        breadcrumb.push({
+          title: "หน้าแรก",
+        });
+        break;
+      case ROUTES.DASHBOARD_ADMIN:
+        breadcrumb.push({
+          title: "แดชบอร์ดผู้ดูแล",
+        });
+        break;
+      case ROUTES.DATA_MANAGEMENT:
+        breadcrumb.push({
+          title: "ข้อมูลหลัก",
+        });
+        break;
+      case ROUTES.DATA_UPDATE:
+        breadcrumb.push({
+          title: "ปรับปรุงข้อมูล",
+        });
+        break;
+      case ROUTES.SETTINGS:
+        breadcrumb.push({
+          title: "ตั้งค่า",
+        });
+        break;
+      default:
+        break;
+    }
+
+    return breadcrumb;
   };
 
   return (
