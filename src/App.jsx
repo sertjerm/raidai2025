@@ -10,6 +10,7 @@ import { LogoutOutlined } from "@ant-design/icons";
 import { raidaiTheme } from "@config/theme";
 import { ROUTES, APP_CONFIG } from "@config/constants";
 import Login from "@pages/Login";
+import Home from "@pages/Home";
 import { Dashboard, DashboardAdmin } from "@pages/Dashboard";
 import DataManagement from "@pages/DataManagement";
 import DataUpdate from "@pages/DataUpdate";
@@ -49,11 +50,13 @@ function App() {
   }
 
   const handleLogin = (userData) => {
+    console.log("handleLogin called with userData:", userData);
     setIsLoggedIn(true);
     setUser(userData); // เก็บ user object ทั้งหมด
     // Save to localStorage
     localStorage.setItem("currentUser", JSON.stringify(userData));
     localStorage.setItem("isLoggedIn", "true");
+    console.log("Login completed, should go to:", ROUTES.HOME);
   };
 
   const handleLogout = () => {
@@ -79,15 +82,19 @@ function App() {
         {/* Virtual path ที่ user เห็นใน URL */}
         <AppLayout user={user} onLogout={handleLogout}>
           <Routes>
+            {/* Home Route - คู่มือการใช้งาน */}
+            <Route path={ROUTES.HOME} element={<Home user={user} />} />
+
             <Route
               path={ROUTES.DATA_UPDATE}
               element={<DataUpdate user={user} />}
             />
 
-            <Route
+            {/* Dashboard ปกติ - ปิดการใช้งานชั่วคราว */}
+            {/* <Route
               path={ROUTES.DASHBOARD}
               element={<Dashboard user={user} />}
-            />
+            /> */}
 
             <Route
               path={ROUTES.DASHBOARD_ADMIN}
@@ -149,10 +156,8 @@ function App() {
               }
             />
 
-            <Route
-              path="*"
-              element={<Navigate to={ROUTES.DATA_UPDATE} replace />}
-            />
+            {/* Default route - ไปหน้า Home เสมอ */}
+            <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
           </Routes>
         </AppLayout>
       </Router>

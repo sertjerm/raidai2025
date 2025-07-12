@@ -1,42 +1,47 @@
 import { useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Layout, Menu } from "antd";
 import {
-  DashboardOutlined,
+  BookOutlined,
+  EditOutlined,
+  FundOutlined,
   DatabaseOutlined,
-  FileTextOutlined,
   SettingOutlined,
 } from "@ant-design/icons";
-import { ROUTES } from "@config/constants";
+import { MENU_ITEMS } from "@config/constants";
 
 const { Sider } = Layout;
 
-function AppSidebar({ collapsed, onCollapse }) {
+function AppSidebar({ collapsed, onCollapse, user }) {
   const location = useLocation();
+  const navigate = useNavigate();
 
-  // Menu items
-  const menuItems = [
-    {
-      key: ROUTES.DASHBOARD,
-      icon: <DashboardOutlined />,
-      label: "หน้าแรก",
-    },
-    {
-      key: ROUTES.DATA_MANAGEMENT,
-      icon: <DatabaseOutlined />,
-      label: "ข้อมูลหลัก",
-    },
-    {
-      key: ROUTES.REPORTS,
-      icon: <FileTextOutlined />,
-      label: "รายงาน",
-    },
-    {
-      key: ROUTES.SETTINGS,
-      icon: <SettingOutlined />,
-      label: "ตั้งค่า",
-    },
-  ];
+  // Filter menu items based on user role
+  const getVisibleMenuItems = () => {
+    return MENU_ITEMS.filter((item) => {
+      // If item requires admin access and user is not admin, hide it
+      if (item.adminOnly && user?.userid !== "admin") {
+        return false;
+      }
+      return true;
+    }).map((item) => ({
+      key: item.path,
+      icon: getMenuIcon(item.icon),
+      label: item.label,
+    }));
+  };
+
+  // Get icon component from string
+  const getMenuIcon = (iconName) => {
+    const icons = {
+      BookOutlined: <BookOutlined />,
+      EditOutlined: <EditOutlined />,
+      FundOutlined: <FundOutlined />,
+      DatabaseOutlined: <DatabaseOutlined />,
+      SettingOutlined: <SettingOutlined />,
+    };
+    return icons[iconName] || <EditOutlined />;
+  };
 
   return (
     <Sider
@@ -77,13 +82,13 @@ function AppSidebar({ collapsed, onCollapse }) {
         theme="dark"
         mode="inline"
         selectedKeys={[location.pathname]}
-        items={menuItems}
+        items={getVisibleMenuItems()}
         style={{
           background: "transparent",
           border: "none",
         }}
         onClick={({ key }) => {
-          window.location.pathname = key;
+          navigate(key);
         }}
       />
     </Sider>

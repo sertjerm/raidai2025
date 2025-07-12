@@ -4,41 +4,47 @@ export const APP_CONFIG = {
   version: "1.0.0",
   year: "2025",
   defaultUser: "021000",
+  description:
+    "ระบบสหกรณ์แจ้งยอดเรียกเก็บและรายงานยอดชำระสำหรับพนักงานเงินรายได้",
+  organization: "มหาวิทยาลัยเกษตรศาสตร์",
 };
 
 export const ROUTES = {
   LOGIN: "/login",
+  HOME: "/",
   DASHBOARD: "/dashboard",
   DASHBOARD_ADMIN: "/dashboard-admin",
   DATA_MANAGEMENT: "/data",
-  DATA_UPDATE: "/",
+  DATA_UPDATE: "/data-update",
   SETTINGS: "/settings",
 };
 
 export const MENU_ITEMS = [
   {
-    key: "dashboard",
-    path: ROUTES.DASHBOARD,
-    label: "หน้าแรก",
-    icon: "DashboardOutlined",
-  },
-  {
-    key: "dashboard-admin",
-    path: ROUTES.DASHBOARD_ADMIN,
-    label: "Admin Dashboard",
-    icon: "FundOutlined",
-  },
-  {
-    key: "data",
-    path: ROUTES.DATA_MANAGEMENT,
-    label: "ข้อมูลหลัก",
-    icon: "DatabaseOutlined",
+    key: "home",
+    path: ROUTES.HOME,
+    label: "คู่มือการใช้งาน",
+    icon: "BookOutlined",
   },
   {
     key: "data-update",
     path: ROUTES.DATA_UPDATE,
-    label: "ปรับปรุงข้อมูล",
+    label: "อัปเดตข้อมูล",
     icon: "EditOutlined",
+  },
+  {
+    key: "dashboard-admin",
+    path: ROUTES.DASHBOARD_ADMIN,
+    label: "Dashboard ผู้ดูแล",
+    icon: "FundOutlined",
+    adminOnly: true, // แสดงเฉพาะ admin
+  },
+  {
+    key: "data",
+    path: ROUTES.DATA_MANAGEMENT,
+    label: "จัดการข้อมูล",
+    icon: "DatabaseOutlined",
+    adminOnly: true, // แสดงเฉพาะ admin
   },
   {
     key: "settings",
@@ -175,6 +181,16 @@ export const PASTEL_COLORS = {
     DEFAULT: "#ffe58f",
     DEEP: "#ffd666",
   },
+  PURPLE: {
+    LIGHT: "#f9f0ff",
+    DEFAULT: "#d3adf7",
+    DEEP: "#b37feb",
+  },
+  ORANGE: {
+    LIGHT: "#fff7e6",
+    DEFAULT: "#ffd591",
+    DEEP: "#ffb366",
+  },
 };
 
 export const GRADIENT_STYLES = {
@@ -183,6 +199,8 @@ export const GRADIENT_STYLES = {
     GREEN: "linear-gradient(135deg, #f6ffed 0%, #d9f7be 100%)",
     RED: "linear-gradient(135deg, #fff1f0 0%, #ffccc7 100%)",
     YELLOW: "linear-gradient(135deg, #fffbe6 0%, #fff1b8 100%)",
+    PURPLE: "linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%)",
+    ORANGE: "linear-gradient(135deg, #fff7e6 0%, #ffe7ba 100%)",
   },
   BACKGROUND: "linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%)",
 };

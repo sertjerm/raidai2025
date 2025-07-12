@@ -69,34 +69,47 @@ function AppLayout({ user, onLogout, children }) {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Menu items based on your constants
-  const menuItems = [
-    {
-      key: ROUTES.DASHBOARD,
-      icon: <DashboardOutlined />,
-      label: "หน้าแรก",
-    },
-    {
-      key: ROUTES.DASHBOARD_ADMIN,
-      icon: <FundOutlined />,
-      label: "แดชบอร์ดผู้ดูแล",
-    },
-    {
-      key: ROUTES.DATA_MANAGEMENT,
-      icon: <DatabaseOutlined />,
-      label: "ข้อมูลหลัก",
-    },
-    {
-      key: ROUTES.DATA_UPDATE,
-      icon: <EditOutlined />,
-      label: "ปรับปรุงข้อมูล",
-    },
-    {
+  // Get menu items based on user role
+  const getVisibleMenuItems = () => {
+    const baseItems = [
+      {
+        key: ROUTES.HOME,
+        icon: <HomeOutlined />,
+        label: "คู่มือการใช้งาน",
+      },
+      {
+        key: ROUTES.DATA_UPDATE,
+        icon: <EditOutlined />,
+        label: "อัปเดตข้อมูล",
+      },
+    ];
+
+    const adminItems = [
+      {
+        key: ROUTES.DASHBOARD_ADMIN,
+        icon: <FundOutlined />,
+        label: "Dashboard ผู้ดูแล",
+      },
+      {
+        key: ROUTES.DATA_MANAGEMENT,
+        icon: <DatabaseOutlined />,
+        label: "จัดการข้อมูล",
+      },
+    ];
+
+    const settingsItem = {
       key: ROUTES.SETTINGS,
       icon: <SettingOutlined />,
       label: "ตั้งค่า",
-    },
-  ];
+    };
+
+    // Return menu items based on user role
+    if (user?.userid === "admin") {
+      return [...baseItems, ...adminItems, settingsItem];
+    }
+
+    return [...baseItems, settingsItem];
+  };
 
   // Get breadcrumb items based on current route
   const getBreadcrumb = () => {
@@ -188,7 +201,7 @@ function AppLayout({ user, onLogout, children }) {
           theme="dark"
           mode="inline"
           selectedKeys={[location.pathname]}
-          items={menuItems}
+          items={getVisibleMenuItems()}
           style={{
             background: "transparent",
             border: "none",
