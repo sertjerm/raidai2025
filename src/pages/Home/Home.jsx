@@ -48,11 +48,11 @@ const Home = ({ user }) => {
     if (user?.userid === "admin") {
       return [
         {
-          title: "Dashboard ผู้ดูแล",
+          title: "Dashboard",
           description: "ดูสรุปการเก็บเงินและสถิติของทั้งระบบ",
           icon: <FundOutlined />,
           color: PASTEL_COLORS.PURPLE.DEFAULT,
-          path: ROUTES.DASHBOARD_ADMIN,
+          path: ROUTES.DASHBOARD,
           primary: true,
         },
         {
@@ -116,20 +116,67 @@ const Home = ({ user }) => {
               strong
               style={{ fontSize: "16px", color: PASTEL_COLORS.GREEN.DEEP }}
             >
-              👋 สวัสดี {user.fullname || user.userid}
+              👋 สวัสดี {user.username || user.userid}
             </Text>
             <Space wrap>
               <Tag color={user.userid === "admin" ? "purple" : "blue"}>
                 {user.userid === "admin" ? "👑 ผู้ดูแลระบบ" : "👤 ผู้ใช้งาน"}
               </Tag>
               <Tag color="green">ID: {user.userid}</Tag>
-              {user.dept_name && (
-                <Tag color="orange">หน่วยงาน: {user.dept_name}</Tag>
+              {user.boss && <Tag color="orange">ผู้บริหาร: {user.boss}</Tag>}
+              {user.period && (
+                <Tag color="cyan">งวด: {user.period.PeriodName}</Tag>
               )}
             </Space>
           </Space>
         )}
       </Card>
+
+      {/* Department Information */}
+      {user?.depts && user.depts.length > 0 && (
+        <Card style={{ ...CARD_STYLES.BASE, marginBottom: 24 }}>
+          <Title level={4} style={{ marginBottom: 16, textAlign: "center" }}>
+            📋 หน่วยงานภายใต้การดูแล{" "}
+            {(() => {
+              const uniqueDepts = new Set(
+                user.depts.map((dept) => dept.dept_code)
+              );
+              const deptCount = uniqueDepts.size;
+              const sectCount = user.depts.length;
+              return `${deptCount} หน่วยงาน ${sectCount} สังกัด`;
+            })()}
+          </Title>
+          <Row gutter={[16, 16]}>
+            {user.depts.map((dept, index) => (
+              <Col xs={24} sm={12} lg={8} key={index}>
+                <Card
+                  size="small"
+                  style={{
+                    borderColor: PASTEL_COLORS.BLUE.DEFAULT,
+                    borderWidth: "1px",
+                    height: "100%",
+                  }}
+                  bodyStyle={{ padding: "12px" }}
+                >
+                  <Space
+                    direction="vertical"
+                    size="small"
+                    style={{ width: "100%" }}
+                  >
+                    <Text strong style={{ color: PASTEL_COLORS.BLUE.DEEP }}>
+                      {dept.sect_name}
+                    </Text>
+                    <Space wrap>
+                      <Tag color="blue">รหัส: {dept.sect_code}</Tag>
+                      <Tag color="green">จำนวน: {dept.cnt} คน</Tag>
+                    </Space>
+                  </Space>
+                </Card>
+              </Col>
+            ))}
+          </Row>
+        </Card>
+      )}
 
       {/* Quick Actions */}
       <Card style={{ ...CARD_STYLES.BASE, marginBottom: 24 }}>

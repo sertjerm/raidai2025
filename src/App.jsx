@@ -11,7 +11,7 @@ import { raidaiTheme } from "@config/theme";
 import { ROUTES, APP_CONFIG } from "@config/constants";
 import Login from "@pages/Login";
 import Home from "@pages/Home";
-import { Dashboard, DashboardAdmin } from "@pages/Dashboard";
+import { Dashboard } from "@pages/Dashboard";
 import DataManagement from "@pages/DataManagement";
 import DataUpdate from "@pages/DataUpdate";
 import { AppLayout } from "@components/Layout";
@@ -106,11 +106,6 @@ function AppContent({ user }) {
 
           {/* Dashboard สำหรับทุกคน - แสดงข้อมูลตามสิทธิ์ */}
           <Route path={ROUTES.DASHBOARD} element={<Dashboard user={user} />} />
-
-          <Route
-            path={ROUTES.DASHBOARD_ADMIN}
-            element={<DashboardAdmin user={user} />}
-          />
 
           <Route
             path={ROUTES.DATA_MANAGEMENT}

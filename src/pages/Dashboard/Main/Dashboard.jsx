@@ -52,6 +52,7 @@ const { Option } = Select;
 const { Search } = Input;
 
 const Dashboard = ({ user }) => {
+  console.log("Dashboard user object:", user); // Debug user structure
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState("");
@@ -262,11 +263,9 @@ const Dashboard = ({ user }) => {
     },
   ];
 
-  // คำนวณเปอร์เซ็นต์การชำระเงิน
+  // คำนวณเปอร์เซ็นต์การชำระเงิน (ตามจำนวนคน)
   const paymentRate =
-    stats.totalAmount > 0
-      ? (stats.collectedAmount / stats.totalAmount) * 100
-      : 0;
+    stats.totalMembers > 0 ? (stats.paidCount / stats.totalMembers) * 100 : 0;
 
   return (
     <div style={{ padding: "0" }}>
@@ -285,12 +284,12 @@ const Dashboard = ({ user }) => {
           <TrophyOutlined style={{ color: PASTEL_COLORS.YELLOW.DEEP }} />
           {isAdmin
             ? "Dashboard ผู้ดูแลระบบ"
-            : `Dashboard ${user?.dept_name || "หน่วยงาน"}`}
+            : `Dashboard ${user?.username || "ผู้ใช้งาน"}`}
         </Title>
         <Text type="secondary" style={{ fontSize: "16px" }}>
           {isAdmin
             ? "ภาพรวมการเก็บเงินทั้งระบบ"
-            : `ภาพรวมการเก็บเงินของ${user?.dept_name || "หน่วยงาน"}`}
+            : `ภาพรวมการเก็บเงินของ ${user?.username || "หน่วยงาน"}`}
         </Text>
       </div>
 

@@ -4,7 +4,7 @@ import { Layout, Menu } from "antd";
 import {
   BookOutlined,
   EditOutlined,
-  FundOutlined,
+  BarChartOutlined,
   DatabaseOutlined,
   SettingOutlined,
 } from "@ant-design/icons";
@@ -36,7 +36,7 @@ function AppSidebar({ collapsed, onCollapse, user }) {
     const icons = {
       BookOutlined: <BookOutlined />,
       EditOutlined: <EditOutlined />,
-      FundOutlined: <FundOutlined />,
+      BarChartOutlined: <BarChartOutlined />,
       DatabaseOutlined: <DatabaseOutlined />,
       SettingOutlined: <SettingOutlined />,
     };

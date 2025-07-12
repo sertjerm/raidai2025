@@ -13,7 +13,6 @@ export const ROUTES = {
   LOGIN: "/login",
   HOME: "/",
   DASHBOARD: "/dashboard",
-  DASHBOARD_ADMIN: "/dashboard-admin",
   DATA_MANAGEMENT: "/data",
   DATA_UPDATE: "/data-update",
   SETTINGS: "/settings",
@@ -37,13 +36,6 @@ export const MENU_ITEMS = [
     path: ROUTES.DASHBOARD,
     label: "Dashboard",
     icon: "BarChartOutlined",
-  },
-  {
-    key: "dashboard-admin",
-    path: ROUTES.DASHBOARD_ADMIN,
-    label: "Dashboard ผู้ดูแล",
-    icon: "FundOutlined",
-    adminOnly: true, // แสดงเฉพาะ admin
   },
   {
     key: "data",

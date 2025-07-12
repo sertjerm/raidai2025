@@ -92,11 +92,6 @@ function AppLayout({ user, onLogout, children }) {
 
     const adminItems = [
       {
-        key: ROUTES.DASHBOARD_ADMIN,
-        icon: <FundOutlined />,
-        label: "Dashboard ผู้ดูแล",
-      },
-      {
         key: ROUTES.DATA_MANAGEMENT,
         icon: <DatabaseOutlined />,
         label: "จัดการข้อมูล",
@@ -129,12 +124,7 @@ function AppLayout({ user, onLogout, children }) {
     switch (path) {
       case ROUTES.DASHBOARD:
         breadcrumb.push({
-          title: "หน้าแรก",
-        });
-        break;
-      case ROUTES.DASHBOARD_ADMIN:
-        breadcrumb.push({
-          title: "แดชบอร์ดผู้ดูแล",
+          title: "Dashboard",
         });
         break;
       case ROUTES.DATA_MANAGEMENT:
