@@ -74,12 +74,19 @@ const Home = ({ user }) => {
 
     return [
       {
+        title: "Dashboard",
+        description: "ดูภาพรวมการเก็บเงินของหน่วยงาน",
+        icon: <FundOutlined />,
+        color: PASTEL_COLORS.PURPLE.DEFAULT,
+        path: ROUTES.DASHBOARD,
+        primary: true,
+      },
+      {
         title: "อัปเดตข้อมูล",
         description: "รายงานยอดเก็บได้และปรับปรุงข้อมูลสมาชิกในหน่วยงาน",
         icon: <EditOutlined />,
         color: PASTEL_COLORS.BLUE.DEFAULT,
         path: ROUTES.DATA_UPDATE,
-        primary: true,
       },
     ];
   };

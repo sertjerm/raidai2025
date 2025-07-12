@@ -19,6 +19,7 @@ import {
   LogoutOutlined,
   HomeOutlined,
   FundOutlined,
+  BarChartOutlined,
 } from "@ant-design/icons";
 import { ROUTES, APP_CONFIG } from "@config/constants";
 import AppHeader from "./AppHeader";
@@ -81,6 +82,11 @@ function AppLayout({ user, onLogout, children }) {
         key: ROUTES.DATA_UPDATE,
         icon: <EditOutlined />,
         label: "อัปเดตข้อมูล",
+      },
+      {
+        key: ROUTES.DASHBOARD,
+        icon: <BarChartOutlined />,
+        label: "Dashboard",
       },
     ];
 

@@ -33,6 +33,12 @@ export const MENU_ITEMS = [
     icon: "EditOutlined",
   },
   {
+    key: "dashboard",
+    path: ROUTES.DASHBOARD,
+    label: "Dashboard",
+    icon: "BarChartOutlined",
+  },
+  {
     key: "dashboard-admin",
     path: ROUTES.DASHBOARD_ADMIN,
     label: "Dashboard ผู้ดูแล",
