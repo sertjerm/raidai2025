@@ -13,6 +13,7 @@
 @use "components/layout";
 @use "components/login";
 @use "components/dashboard";
+@use "components/data-update";
 
 // Forward for component access
 @forward "variables/colors";

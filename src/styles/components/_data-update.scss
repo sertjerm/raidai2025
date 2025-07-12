@@ -1,0 +1,138 @@
+// DataUpdate Component Styles
+.data-update-container {
+  padding: 24px;
+}
+
+// Control Panel
+.data-update-control-panel {
+  margin-bottom: 16px;
+}
+
+// Header Card
+.data-update-header-card {
+  margin-bottom: 24px;
+}
+
+// Statistic Cards
+.data-update-statistic-card {
+  &--blue {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  }
+  
+  &--orange {
+    background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+  }
+  
+  &--green {
+    background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+  }
+  
+  &--red {
+    background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+  }
+}
+
+// Department Collapse
+.data-update-department-collapse {
+  margin-bottom: 24px;
+}
+
+// Table Container
+.data-update-table-container {
+  width: 100%;
+  border: 1px solid #f0f0f0;
+  border-radius: 6px;
+}
+
+// Table Summary (Headers/Footers)
+.data-update-table-summary {
+  display: flex;
+  font-size: 11px; // ลดจาก 12px เป็น 11px
+  width: 100%;
+}
+
+.summary-cell {
+  padding: 3px 6px; // ลดจาก 4px 8px เป็น 3px 6px
+  
+  &--sequence {
+    width: 5%; // ลดจาก 6% เป็น 5%
+  }
+  
+  &--member-id {
+    width: 8%; // ลดจาก 8.5% เป็น 8%
+  }
+  
+  &--name {
+    width: 13%; // ลดจาก 14% เป็น 13%
+  }
+  
+  &--salary {
+    width: 10.5%; // ลดจาก 11% เป็น 10.5%
+    text-align: right;
+  }
+  
+  &--remaining {
+    width: 10.5%; // ลดจาก 11% เป็น 10.5%
+    text-align: right;
+  }
+  
+  &--collect {
+    width: 10.5%; // ลดจาก 11% เป็น 10.5%
+    text-align: right;
+  }
+  
+  &--aid {
+    width: 9.5%; // ลดจาก 10% เป็น 9.5%
+    text-align: right;
+  }
+  
+  &--got {
+    width: 10.5%; // ลดจาก 11% เป็น 10.5%
+    text-align: right;
+  }
+  
+  &--difference {
+    width: 8.5%; // ลดจาก 9% เป็น 8.5%
+    text-align: right;
+  }
+  
+  &--notes {
+    width: 5.5%; // ลดจาก 6% เป็น 5.5%
+  }
+  
+  &--actions {
+    width: 11.5%; // ลดจาก 12.5% เป็น 11.5%
+  }
+}
+
+.summary-label {
+  font-size: 9px; // ลดจาก 10px เป็น 9px
+  color: #999;
+  margin-bottom: 1px; // ลดจาก 2px เป็น 1px
+}
+
+// Table Row Styling
+.table-row-light td {
+  background-color: #f8f9fa !important;
+}
+
+.table-row-dark td {
+  background-color: #ffffff !important;
+}
+
+.table-row-light:hover td,
+.table-row-dark:hover td {
+  background-color: #e6f7ff !important;
+}
+
+// Table Layout
+.ant-table {
+  table-layout: fixed !important;
+  width: 100% !important;
+}
+
+.ant-table-thead > tr > th,
+.ant-table-tbody > tr > td {
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}

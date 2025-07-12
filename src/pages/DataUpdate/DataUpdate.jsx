@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
+import "../../styles/components/_data-update.scss";
 import {
   Table,
   Card,
@@ -1248,9 +1249,9 @@ const DataUpdate = ({ user }) => {
   );
 
   return (
-    <div style={{ padding: "24px" }}>
+    <div className="data-update-container">
       {/* Control Panel */}
-      <Card style={{ marginBottom: "16px" }}>
+      <Card className="data-update-control-panel">
         <Row justify="space-between" align="middle">
           <Col>
             <Space>
@@ -1293,15 +1294,11 @@ const DataUpdate = ({ user }) => {
       </Card>
 
       {/* Header */}
-      <Card style={{ marginBottom: "24px" }}>
+      <Card className="data-update-header-card">
         {/* Grand Totals */}
         <Row gutter={[16, 16]}>
           <Col xs={24} sm={6} lg={6}>
-            <Card
-              style={{
-                background: "linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)",
-              }}
-            >
+            <Card className="data-update-statistic-card data-update-statistic-card--blue">
               <Statistic
                 title="เรียกเก็บรวม"
                 value={grandTotals.total1}
@@ -1316,11 +1313,7 @@ const DataUpdate = ({ user }) => {
             </Card>
           </Col>
           <Col xs={24} sm={6} lg={6}>
-            <Card
-              style={{
-                background: "linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%)",
-              }}
-            >
+            <Card className="data-update-statistic-card data-update-statistic-card--orange">
               <Statistic
                 title="เงินทำบุญรวม"
                 value={grandTotals.aidAmount}
@@ -1335,11 +1328,7 @@ const DataUpdate = ({ user }) => {
             </Card>
           </Col>
           <Col xs={24} sm={6} lg={6}>
-            <Card
-              style={{
-                background: "linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)",
-              }}
-            >
+            <Card className="data-update-statistic-card data-update-statistic-card--green">
               <Statistic
                 title="เก็บได้รวม"
                 value={grandTotals.total2}
@@ -1354,11 +1343,7 @@ const DataUpdate = ({ user }) => {
             </Card>
           </Col>
           <Col xs={24} sm={6} lg={6}>
-            <Card
-              style={{
-                background: "linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%)",
-              }}
-            >
+            <Card className="data-update-statistic-card data-update-statistic-card--red">
               <Statistic
                 title="ผลต่างรวม"
                 value={Math.abs(formatCurrency(grandTotals.difference))}
@@ -1379,6 +1364,7 @@ const DataUpdate = ({ user }) => {
 
       {/* Department Data */}
       <Collapse
+        className="data-update-department-collapse"
         expandIcon={({ isActive }) => (
           <CaretRightOutlined rotate={isActive ? 90 : 0} />
         )}
@@ -1434,40 +1420,19 @@ const DataUpdate = ({ user }) => {
                   </div>
 
                   {/* สรุปยอดตาม columns ตาราง - แสดงเสมอ */}
-                  <div
-                    style={{
-                      display: "flex",
-                      fontSize: "12px",
-                      overflow: "hidden",
-                      width: "1320px", // ตรงกับ table scroll width
-                    }}
-                  >
+                  <div className="data-update-table-summary">
                     {/* ลำดับ */}
-                    <div style={{ width: "80px", padding: "4px 8px" }}></div>
+                    <div className="summary-cell summary-cell--sequence"></div>
 
                     {/* เลขสมาชิก */}
-                    <div style={{ width: "110px", padding: "4px 8px" }}></div>
+                    <div className="summary-cell summary-cell--member-id"></div>
 
                     {/* ชื่อ-สกุล */}
-                    <div style={{ width: "180px", padding: "4px 8px" }}></div>
+                    <div className="summary-cell summary-cell--name"></div>
 
                     {/* เงินเดือน */}
-                    <div
-                      style={{
-                        width: "110px",
-                        textAlign: "right",
-                        padding: "4px 8px",
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontSize: "10px",
-                          color: "#999",
-                          marginBottom: "2px",
-                        }}
-                      >
-                        เงินเดือน
-                      </div>
+                    <div className="summary-cell summary-cell--salary">
+                      <div className="summary-label">เงินเดือน</div>
                       <Text strong>
                         {dept.totals.salary.toLocaleString("th-TH", {
                           minimumFractionDigits: 2,
@@ -1476,22 +1441,8 @@ const DataUpdate = ({ user }) => {
                     </div>
 
                     {/* เหลือรับ */}
-                    <div
-                      style={{
-                        width: "110px",
-                        textAlign: "right",
-                        padding: "4px 8px",
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontSize: "10px",
-                          color: "#999",
-                          marginBottom: "2px",
-                        }}
-                      >
-                        เหลือรับ
-                      </div>
+                    <div className="summary-cell summary-cell--remaining">
+                      <div className="summary-label">เหลือรับ</div>
                       <Text strong>
                         {dept.totals.money.toLocaleString("th-TH", {
                           minimumFractionDigits: 2,
@@ -1500,22 +1451,8 @@ const DataUpdate = ({ user }) => {
                     </div>
 
                     {/* เรียกเก็บ */}
-                    <div
-                      style={{
-                        width: "110px",
-                        textAlign: "right",
-                        padding: "4px 8px",
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontSize: "10px",
-                          color: "#999",
-                          marginBottom: "2px",
-                        }}
-                      >
-                        เรียกเก็บ
-                      </div>
+                    <div className="summary-cell summary-cell--collect">
+                      <div className="summary-label">เรียกเก็บ</div>
                       <Text strong style={{ color: "#1890ff" }}>
                         {dept.totals.total1.toLocaleString("th-TH", {
                           minimumFractionDigits: 2,
@@ -1524,22 +1461,8 @@ const DataUpdate = ({ user }) => {
                     </div>
 
                     {/* เงินทำบุญ */}
-                    <div
-                      style={{
-                        width: "120px",
-                        textAlign: "right",
-                        padding: "4px 8px",
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontSize: "10px",
-                          color: "#999",
-                          marginBottom: "2px",
-                        }}
-                      >
-                        เงินทำบุญ
-                      </div>
+                    <div className="summary-cell summary-cell--aid">
+                      <div className="summary-label">เงินทำบุญ</div>
                       <Text strong style={{ color: "#fa8c16" }}>
                         {dept.totals.aidAmount.toLocaleString("th-TH", {
                           minimumFractionDigits: 0,
@@ -1548,22 +1471,8 @@ const DataUpdate = ({ user }) => {
                     </div>
 
                     {/* เก็บได้ */}
-                    <div
-                      style={{
-                        width: "110px",
-                        textAlign: "right",
-                        padding: "4px 8px",
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontSize: "10px",
-                          color: "#999",
-                          marginBottom: "2px",
-                        }}
-                      >
-                        เก็บได้
-                      </div>
+                    <div className="summary-cell summary-cell--got">
+                      <div className="summary-label">เก็บได้</div>
                       <Text strong style={{ color: "#52c41a" }}>
                         {dept.totals.total2.toLocaleString("th-TH", {
                           minimumFractionDigits: 2,
@@ -1572,22 +1481,8 @@ const DataUpdate = ({ user }) => {
                     </div>
 
                     {/* ผลต่าง */}
-                    <div
-                      style={{
-                        width: "90px",
-                        textAlign: "right",
-                        padding: "4px 8px",
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontSize: "10px",
-                          color: "#999",
-                          marginBottom: "2px",
-                        }}
-                      >
-                        ผลต่าง
-                      </div>
+                    <div className="summary-cell summary-cell--difference">
+                      <div className="summary-label">ผลต่าง</div>
                       <Text
                         strong={Math.abs(dept.totals.difference) >= 0.01}
                         style={{
@@ -1607,10 +1502,10 @@ const DataUpdate = ({ user }) => {
                     </div>
 
                     {/* หมายเหตุ */}
-                    <div style={{ width: "80px", padding: "4px 8px" }}></div>
+                    <div className="summary-cell summary-cell--notes"></div>
 
                     {/* จัดการ */}
-                    <div style={{ width: "165px", padding: "4px 8px" }}></div>
+                    <div className="summary-cell summary-cell--actions"></div>
                   </div>
                 </div>
               </div>
@@ -1672,46 +1567,19 @@ const DataUpdate = ({ user }) => {
                           {!sectionExpandedKeys[dept.dept_code]?.includes(
                             `${dept.dept_code}-${section.sect_code}`
                           ) && (
-                            <div
-                              style={{
-                                display: "flex",
-                                fontSize: "12px",
-                                overflow: "hidden",
-                                width: "1320px", // ตรงกับ table scroll width
-                              }}
-                            >
+                            <div className="data-update-table-summary">
                               {/* ลำดับ */}
-                              <div
-                                style={{ width: "80px", padding: "4px 8px" }}
-                              ></div>
+                              <div className="summary-cell summary-cell--sequence"></div>
 
                               {/* เลขสมาชิก */}
-                              <div
-                                style={{ width: "110px", padding: "4px 8px" }}
-                              ></div>
+                              <div className="summary-cell summary-cell--member-id"></div>
 
                               {/* ชื่อ-สกุล */}
-                              <div
-                                style={{ width: "180px", padding: "4px 8px" }}
-                              ></div>
+                              <div className="summary-cell summary-cell--name"></div>
 
                               {/* เงินเดือน */}
-                              <div
-                                style={{
-                                  width: "110px",
-                                  textAlign: "right",
-                                  padding: "4px 8px",
-                                }}
-                              >
-                                <div
-                                  style={{
-                                    fontSize: "10px",
-                                    color: "#999",
-                                    marginBottom: "2px",
-                                  }}
-                                >
-                                  เงินเดือน
-                                </div>
+                              <div className="summary-cell summary-cell--salary">
+                                <div className="summary-label">เงินเดือน</div>
                                 <Text strong>
                                   {section.totals.salary.toLocaleString(
                                     "th-TH",
@@ -1721,22 +1589,8 @@ const DataUpdate = ({ user }) => {
                               </div>
 
                               {/* เหลือรับ */}
-                              <div
-                                style={{
-                                  width: "110px",
-                                  textAlign: "right",
-                                  padding: "4px 8px",
-                                }}
-                              >
-                                <div
-                                  style={{
-                                    fontSize: "10px",
-                                    color: "#999",
-                                    marginBottom: "2px",
-                                  }}
-                                >
-                                  เหลือรับ
-                                </div>
+                              <div className="summary-cell summary-cell--remaining">
+                                <div className="summary-label">เหลือรับ</div>
                                 <Text strong>
                                   {section.totals.money.toLocaleString(
                                     "th-TH",
@@ -1746,22 +1600,8 @@ const DataUpdate = ({ user }) => {
                               </div>
 
                               {/* เรียกเก็บ */}
-                              <div
-                                style={{
-                                  width: "110px",
-                                  textAlign: "right",
-                                  padding: "4px 8px",
-                                }}
-                              >
-                                <div
-                                  style={{
-                                    fontSize: "10px",
-                                    color: "#999",
-                                    marginBottom: "2px",
-                                  }}
-                                >
-                                  เรียกเก็บ
-                                </div>
+                              <div className="summary-cell summary-cell--collect">
+                                <div className="summary-label">เรียกเก็บ</div>
                                 <Text strong style={{ color: "#1890ff" }}>
                                   {section.totals.total1.toLocaleString(
                                     "th-TH",
@@ -1771,22 +1611,8 @@ const DataUpdate = ({ user }) => {
                               </div>
 
                               {/* เงินทำบุญ */}
-                              <div
-                                style={{
-                                  width: "120px",
-                                  textAlign: "right",
-                                  padding: "4px 8px",
-                                }}
-                              >
-                                <div
-                                  style={{
-                                    fontSize: "10px",
-                                    color: "#999",
-                                    marginBottom: "2px",
-                                  }}
-                                >
-                                  เงินทำบุญ
-                                </div>
+                              <div className="summary-cell summary-cell--aid">
+                                <div className="summary-label">เงินทำบุญ</div>
                                 <Text strong style={{ color: "#fa8c16" }}>
                                   {section.totals.aidAmount.toLocaleString(
                                     "th-TH",
@@ -1796,22 +1622,8 @@ const DataUpdate = ({ user }) => {
                               </div>
 
                               {/* เก็บได้ */}
-                              <div
-                                style={{
-                                  width: "110px",
-                                  textAlign: "right",
-                                  padding: "4px 8px",
-                                }}
-                              >
-                                <div
-                                  style={{
-                                    fontSize: "10px",
-                                    color: "#999",
-                                    marginBottom: "2px",
-                                  }}
-                                >
-                                  เก็บได้
-                                </div>
+                              <div className="summary-cell summary-cell--got">
+                                <div className="summary-label">เก็บได้</div>
                                 <Text strong style={{ color: "#52c41a" }}>
                                   {section.totals.total2.toLocaleString(
                                     "th-TH",
@@ -1821,22 +1633,8 @@ const DataUpdate = ({ user }) => {
                               </div>
 
                               {/* ผลต่าง */}
-                              <div
-                                style={{
-                                  width: "90px",
-                                  textAlign: "right",
-                                  padding: "4px 8px",
-                                }}
-                              >
-                                <div
-                                  style={{
-                                    fontSize: "10px",
-                                    color: "#999",
-                                    marginBottom: "2px",
-                                  }}
-                                >
-                                  ผลต่าง
-                                </div>
+                              <div className="summary-cell summary-cell--difference">
+                                <div className="summary-label">ผลต่าง</div>
                                 <Text
                                   strong={
                                     Math.abs(section.totals.difference) >= 0.01
@@ -1861,14 +1659,10 @@ const DataUpdate = ({ user }) => {
                               </div>
 
                               {/* หมายเหตุ */}
-                              <div
-                                style={{ width: "80px", padding: "4px 8px" }}
-                              ></div>
+                              <div className="summary-cell summary-cell--notes"></div>
 
                               {/* จัดการ */}
-                              <div
-                                style={{ width: "165px", padding: "4px 8px" }}
-                              ></div>
+                              <div className="summary-cell summary-cell--actions"></div>
                             </div>
                           )}
                         </div>
@@ -1920,14 +1714,7 @@ const DataUpdate = ({ user }) => {
                           )}
                         </div>
 
-                        <div
-                          style={{
-                            width: "100%",
-                            overflow: "hidden",
-                            border: "1px solid #f0f0f0",
-                            borderRadius: "6px",
-                          }}
-                        >
+                        <div className="data-update-table-container">
                           <Table
                             columns={memberColumns}
                             dataSource={getFilteredData(
